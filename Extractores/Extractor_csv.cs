@@ -9,7 +9,7 @@ namespace IEIPracticas.Extractores
 {
     class Extractor_csv
     {
-        static string ConvertCsvToJson(string csvFilePath)
+        public static string ConvertCsvToJson(string csvFilePath)
         {
             if (!File.Exists(csvFilePath))
             {

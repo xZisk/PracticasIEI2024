@@ -10,7 +10,7 @@ namespace IEIPracticas.Extractores
 {
     class Extractor_xml
     {
-        static string ConvertXmlToJson(string xmlFilePath)
+        public static string ConvertXmlToJson(string xmlFilePath)
         {
             if (!File.Exists(xmlFilePath))
             {
