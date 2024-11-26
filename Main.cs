@@ -12,8 +12,8 @@ namespace IEIPracticas
         {
             Console.WriteLine("¡Hola, Mundo!");
 
-             string xmlFilePath = @".\FFDD\bienes_inmuebles_interes_cultural.csv";
-             string csvFilePath = @".\FFDD\monumentos.xml";
+             string csvFilePath = @".\FFDD\bienes_inmuebles_interes_cultural.csv";
+             string xmlFilePath = @".\FFDD\monumentos.xml";
              string jsonFilePath = @".\FFDD\edificios.json";
               try
                 {
