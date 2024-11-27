@@ -9,7 +9,7 @@ namespace IEIPracticas.Extractores
 {
     class Extractor_csv
     {
-        public static string convertCsvToJson(string csvFilePath)
+        public static string ConvertCsvToJson(string csvFilePath)
         {
             // Leer todas las líneas del archivo CSV
             var csvLines = File.ReadAllLines(csvFilePath);

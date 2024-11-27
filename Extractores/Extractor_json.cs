@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-public static class Extractor_json
+class Extractor_json
 {
-    public static string loadJsonAsString(string filePath)
+    public static string LoadJsonAsString(string filePath)
     {
         if (!File.Exists(filePath))
         {
