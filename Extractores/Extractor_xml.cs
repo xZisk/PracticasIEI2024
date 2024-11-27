@@ -10,12 +10,13 @@ namespace IEIPracticas.Extractores
 {
     class Extractor_xml
     {
-        public static string ConvertXmlToJson(string xmlFilePath)
+        public static string convertXmlToJson(string xmlFilePath)
         {
             if (!File.Exists(xmlFilePath))
             {
-                throw new FileNotFoundException($"El archivo JSON no existe en la ruta: {xmlFilePath}");
+                throw new FileNotFoundException($"El archivo XML no existe en la ruta: {xmlFilePath}");
             }
+
             string xmlContent = File.ReadAllText(xmlFilePath);
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.LoadXml(xmlContent);
