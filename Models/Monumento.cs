@@ -1,4 +1,4 @@
-namespace MyProject.Models
+namespace IEIPracticas.Models
 {
     public class Monumento
     {
@@ -9,7 +9,7 @@ namespace MyProject.Models
         public double Longitud { get; set; }
         public double Latitud { get; set; }
         public string Descripcion { get; set; }
-        public string Tipo { get; set; }
+        public Tipo Tipo { get; set; }
         public int IdLocalidad { get; set; }
     }
 }
