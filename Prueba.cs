@@ -46,6 +46,9 @@ namespace IEIPracticas
 
             //string deleteQuery3 = "DELETE FROM Monumento WHERE idMonumento = 1";
             //dbHandler.DeleteData(deleteQuery3);
+            FilterAndInsertCSV();
+            FilterAndInsertXML();
+            FilterAndInsertJSON();
 
             dbHandler.CloseConnection();
         }
@@ -54,19 +57,30 @@ namespace IEIPracticas
             string csvdoc = Extractor_csv.ConvertCsvToJson(".\\FFDD\\edificios.json");
             List<CSVMonumento> csvMonumentos = JsonSerializer.Deserialize<List<CSVMonumento>>(csvdoc);
             List<Monumento> monumentos = new List<Monumento>();
-
+            foreach (CSVMonumento csvMonumento in csvMonumentos)
+            {
+                if(CSVmonumentoToMonumento(csvMonumento) == null) { monumentos.Add(CSVmonumentoToMonumento(csvMonumento)); } 
+            }
         }
         private void FilterAndInsertXML()
         {
             string xmldoc = Extractor_xml.ConvertXmlToJson(".\\FFDD\\edificios.json");
             List<XMLMonumento> xmlMonumentos = JsonSerializer.Deserialize<List<XMLMonumento>>(xmldoc);
             List<Monumento> monumentos = new List<Monumento>();
+            foreach (XMLMonumento xmlMonumento in xmlMonumentos)
+            {
+                if (XMLmonumentoToMonumento(xmlMonumento) == null) { monumentos.Add(XMLmonumentoToMonumento(xmlMonumento)); } 
+            }
         }
         private void FilterAndInsertJSON()
         {
             string jsondoc = Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json");
             List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
             List<Monumento> monumentos = new List<Monumento>();
+            foreach (JSONMonumento jsonMonumento in jsonMonumentos)
+            {
+                if (JSONmonumentoToMonumento(jsonMonumento) == null) { monumentos.Add(JSONmonumentoToMonumento(jsonMonumento)); }
+            }
         }
     }
 }
