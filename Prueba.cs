@@ -1,4 +1,5 @@
 ﻿using IEIPracticas.Extractores;
+using SQLiteOperations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,40 @@ namespace IEIPracticas
     {
         public static void Main()
         {
-            Console.WriteLine(Extractor_csv.ConvertCsvToJson("..\\..\\..\\FFDD\\bienes_inmuebles_interes_cultural.csv"));
-            Console.WriteLine(Extractor_json.LoadJsonAsString("..\\..\\..\\FFDD\\edificios.json"));
-            Console.WriteLine(Extractor_xml.ConvertXmlToJson("..\\..\\..\\FFDD\\monumentos.xml"));
+            Console.WriteLine(Extractor_csv.ConvertCsvToJson(".\\FFDD\\bienes_inmuebles_interes_cultural.csv"));
+            Console.WriteLine(Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json"));
+            Console.WriteLine(Extractor_xml.ConvertXmlToJson(".\\FFDD\\monumentos.xml"));
+        
+            string databasePath = "./SQLite/dbproject.db";
+            SQLiteHandler dbHandler = new SQLiteHandler(databasePath);
+            dbHandler.OpenConnection();
+
+            // Insertar datos
+            string insertQueryProvincia = "INSERT INTO Provincia (idProvincia, nombre) VALUES (1, 'Valencia')";
+            dbHandler.InsertData(insertQueryProvincia);
+
+            string insertQueryLocalidad = "INSERT INTO Localidad (idLocalidad, nombre, idProvincia) VALUES (1, 'Valencia', 1)";
+            dbHandler.InsertData(insertQueryLocalidad);
+
+            string insertQueryMonumento = "INSERT INTO Monumento (idMonumento, nombre, direccion, codigo_postal, longitud, latitud, descripcion, tipo,idLocalidad) VALUES (1, 'Cloacas Romanas', 'testdir',24700, 42.452992,-6.052759, 'testDescripcion','Puente',1 )";
+            dbHandler.InsertData(insertQueryMonumento);
+
+            // Consultar datos
+            string selectQuery = "SELECT * FROM Localidad";
+            dbHandler.QueryData(selectQuery);
+
+            // Eliminar datos
+            //string deleteQuery = "DELETE FROM Provincia WHERE idProvincia = 1";
+            //dbHandler.DeleteData(deleteQuery);
+
+            //string deleteQuery2 = "DELETE FROM Localidad WHERE idLocalidad = 1";
+            //dbHandler.DeleteData(deleteQuery2);
+
+            //string deleteQuery3 = "DELETE FROM Monumento WHERE idMonumento = 1";
+            //dbHandler.DeleteData(deleteQuery3);
+
+            dbHandler.CloseConnection();
+
         }
     }
 }
