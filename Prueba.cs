@@ -1,9 +1,12 @@
 ﻿using IEIPracticas.Extractores;
+using IEIPracticas.Mappers;
+using IEIPracticas.Models;
 using SQLiteOperations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace IEIPracticas
@@ -45,7 +48,25 @@ namespace IEIPracticas
             //dbHandler.DeleteData(deleteQuery3);
 
             dbHandler.CloseConnection();
+        }
+        private static void FilterAndInsertCSV()
+        {
+            string csvdoc = Extractor_csv.ConvertCsvToJson(".\\FFDD\\edificios.json");
+            List<CSVMonumento> csvMonumentos = JsonSerializer.Deserialize<List<CSVMonumento>>(csvdoc);
+            List<Monumento> monumentos = new List<Monumento>();
 
+        }
+        private void FilterAndInsertXML()
+        {
+            string xmldoc = Extractor_xml.ConvertXmlToJson(".\\FFDD\\edificios.json");
+            List<XMLMonumento> xmlMonumentos = JsonSerializer.Deserialize<List<XMLMonumento>>(xmldoc);
+            List<Monumento> monumentos = new List<Monumento>();
+        }
+        private void FilterAndInsertJSON()
+        {
+            string jsondoc = Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json");
+            List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
+            List<Monumento> monumentos = new List<Monumento>();
         }
     }
 }
