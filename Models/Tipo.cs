@@ -9,7 +9,7 @@ namespace IEIPracticas.Models
 {
     public enum Tipo
     {
-        [Description("Yacimiento Arqueologico")]
+        [Description("Yacimiento_arqueologico")]
         Yacimiento,
         [Description("Iglesia-Ermita")]
         Iglesia,
@@ -17,11 +17,11 @@ namespace IEIPracticas.Models
         Monasterio,
         [Description("Castillo-Fortaleza-Torre")]
         Castillo,
-        [Description("Edificio singular")]
+        [Description("Edificio_singular")]
         Edificio,
         [Description("Puente")] 
         Puente,
-        [Description("Otro")]
-        Otro,
+        [Description("Otros")]
+        Otros,
     }
 }

@@ -49,11 +49,10 @@ namespace IEIPracticas.Mappers
                     return null;
                 } 
                 */
-
+                
                 // Crear el objeto Monumento si pasa todas las validaciones
                 var monumento = new Monumento
                 {
-                    IdMonumento = 0, // Placeholder
                     Nombre = csvMonumento.DENOMINACION,
                     Tipo = MapTipo(csvMonumento.CATEGORIA, csvMonumento.DENOMINACION),
                     Descripcion = MapTipo(csvMonumento.CATEGORIA, csvMonumento.DENOMINACION).ToString(),
@@ -61,7 +60,7 @@ namespace IEIPracticas.Mappers
                     CodigoPostal = 00000, // Placeholder
                     Longitud = longitud,
                     Latitud = latitud,
-                    IdLocalidad = 0 // Placeholder
+                    IdLocalidad = 1 // Placeholder, todas ligadas a Valencia de momento
                 };
 
                 return monumento;
@@ -80,7 +79,7 @@ namespace IEIPracticas.Mappers
 
             if (categoria == "Individual (mueble)" || categoria == "Zona paleontológica" ||
                 categoria == "Fondo de museo (primera)" || string.IsNullOrEmpty(categoria))
-                return Tipo.Otro; // 7
+                return Tipo.Otros; // 7
 
             if (categoria == "Monumento" && (denominacion.Contains("Iglesia") || denominacion.Contains("Ermita")))
                 return Tipo.Iglesia; // 2
