@@ -30,6 +30,7 @@ namespace IEIPracticas
             dbHandler.DeleteData("DELETE FROM Monumento");
             dbHandler.DeleteData("DELETE FROM Localidad");
             dbHandler.DeleteData("DELETE FROM Provincia");
+
             // Insertar datos
             string insertQueryProvincia = "INSERT INTO Provincia (idProvincia, nombre) VALUES (1, 'Valencia')";
             dbHandler.InsertData(insertQueryProvincia);
@@ -44,15 +45,6 @@ namespace IEIPracticas
             string selectQuery = "SELECT * FROM Localidad";
             dbHandler.QueryData(selectQuery);
 
-            // Eliminar datos
-            //string deleteQuery = "DELETE FROM Provincia WHERE idProvincia = 1";
-            //dbHandler.DeleteData(deleteQuery);
-
-            //string deleteQuery2 = "DELETE FROM Localidad WHERE idLocalidad = 1";
-            //dbHandler.DeleteData(deleteQuery2);
-
-            //string deleteQuery3 = "DELETE FROM Monumento WHERE idMonumento = 1";
-            //dbHandler.DeleteData(deleteQuery3);
             FilterAndInsertCSV(dbHandler);
             selectQuery = "SELECT * FROM Monumento";
             dbHandler.QueryData(selectQuery);
