@@ -22,7 +22,7 @@ namespace IEIPracticas
             Console.WriteLine(Extractor_csv.ConvertCsvToJson(".\\FFDD\\bienes_inmuebles_interes_cultural.csv"));
             Console.WriteLine(Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json"));
             Console.WriteLine(Extractor_xml.ConvertXmlToJson(".\\FFDD\\monumentos.xml"));
-        
+
             string databasePath = "./SQLite/dbproject.db";
             SQLiteHandler dbHandler = new SQLiteHandler(databasePath);
             dbHandler.OpenConnection();
@@ -45,7 +45,8 @@ namespace IEIPracticas
             string selectQuery = "SELECT * FROM Localidad";
             dbHandler.QueryData(selectQuery);
 
-            FilterAndInsertCSV(dbHandler);
+            //FilterAndInsertCSV(dbHandler);
+            FilterAndInsertXML(dbHandler);
             selectQuery = "SELECT * FROM Monumento";
             dbHandler.QueryData(selectQuery);
 
@@ -87,25 +88,37 @@ namespace IEIPracticas
                 InsertMonumento(monumento, dbHandler);
             }
         }
-        /*private void FilterAndInsertXML()
+        private static void FilterAndInsertXML(SQLiteHandler dbHandler)
         {
             string xmldoc = Extractor_xml.ConvertXmlToJson(".\\FFDD\\monumentos.xml");
-            List<XMLMonumento> xmlMonumentos = JsonSerializer.Deserialize<List<XMLMonumento>>(xmldoc);
-            List<Monumento> monumentos = new List<Monumento>();
+            var jsonObject = JsonSerializer.Deserialize<JsonElement>(xmldoc);
+
+            var monumentosArray = jsonObject.GetProperty("monumentos").GetProperty("monumento");
+
+            List<XMLMonumento> xmlMonumentos = JsonSerializer.Deserialize<List<XMLMonumento>>(monumentosArray.ToString());
+
             foreach (XMLMonumento xmlMonumento in xmlMonumentos)
             {
-                if (XMLmonumentoToMonumento(xmlMonumento) == null) { monumentos.Add(XMLmonumentoToMonumento(xmlMonumento)); } 
+                var monumento = Mapper.XMLMonumentoToMonumento(xmlMonumento);
+
+                if (monumento == null)
+                {
+                    Console.WriteLine($"Monumento inválido detectado: {xmlMonumento.nombre}");
+                    continue;
+                }
+                InsertMonumento(monumento, dbHandler);
             }
-        }
-        private void FilterAndInsertJSON()
-        {
-            string jsondoc = Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json");
-            List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
-            List<Monumento> monumentos = new List<Monumento>();
-            foreach (JSONMonumento jsonMonumento in jsonMonumentos)
+
+            /*private void FilterAndInsertJSON()
             {
-                if (JSONmonumentoToMonumento(jsonMonumento) == null) { monumentos.Add(JSONmonumentoToMonumento(jsonMonumento)); }
-            }
-        }*/
+                string jsondoc = Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json");
+                List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
+                List<Monumento> monumentos = new List<Monumento>();
+                foreach (JSONMonumento jsonMonumento in jsonMonumentos)
+                {
+                    if (JSONmonumentoToMonumento(jsonMonumento) == null) { monumentos.Add(JSONmonumentoToMonumento(jsonMonumento)); }
+                }
+            }*/
+        }
     }
 }

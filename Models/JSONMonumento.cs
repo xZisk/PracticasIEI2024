@@ -19,10 +19,6 @@ namespace IEIPracticas.Models
         public Coordenadas coordenadas { get; set; }
         public string web { get; set; }
     }
-    public class Descripcion
-    {
-        public string CDataSection { get; set; }
-    }
 
     public class HorariosYTarifas
     {
@@ -34,11 +30,5 @@ namespace IEIPracticas.Models
         public string provincia { get; set; }
         public string municipio { get; set; }
         public string localidad { get; set; }
-    }
-
-    public class Coordenadas
-    {
-        public string latitud { get; set; }
-        public string longitud { get; set; }
     }
 }
