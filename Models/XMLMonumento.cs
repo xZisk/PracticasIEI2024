@@ -13,17 +13,17 @@ namespace IEIPracticas.Models
         public string TipoMonumento { get; set; }  // Tipo de monumento
         public string calle { get; set; }  // Dirección
         public string codigoPostal { get; set; }  // Código Postal
-        public Descripcion Descripcion { get; set; }  // Descripción (objeto con #cdata-section)
-        public Coordenadas coordenadas { get; set; }
+        public Desc Descripcion { get; set; }  // Descripción (objeto con #cdata-section)
+        public Coords coordenadas { get; set; }
     }
 
 
-    public class Descripcion
+    public class Desc
     {
         [JsonPropertyName("#cdata-section")]
         public string CDataSection { get; set; }  // Este es el campo que contiene el texto
     }
-    public class Coordenadas
+    public class Coords
     {
         public string latitud { get; set; }
         public string longitud { get; set; }

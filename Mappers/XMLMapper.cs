@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using IEIPracticas.Models;
 
 namespace IEIPracticas
 {
-    public static class Mapper
+    public static class XMLMapper
     {
         public static Monumento XMLMonumentoToMonumento(XMLMonumento xm)
         {
+            string latitudStr = xm.coordenadas.latitud.Replace(',', '.'); 
+            string longitudStr = xm.coordenadas.longitud.Replace(',', '.'); 
+
             if (xm == null)
             {
                 Console.WriteLine("Error: El objeto XMLMonumento no puede ser nulo.");
@@ -20,15 +24,33 @@ namespace IEIPracticas
                 return null;
             }
 
-            if (!double.TryParse(xm.coordenadas.latitud, NumberStyles.Any, CultureInfo.InvariantCulture, out double latitud) || latitud < -90 || latitud > 90)
+            if (string.IsNullOrEmpty(latitudStr))
+            {
+                Console.WriteLine($"Error: Monumento '{xm.nombre}' no tiene valor de latitud");
+                return null;
+            }
+
+            if (!double.TryParse(latitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double latitud) || latitud < -90 || latitud > 90)
             {
                 Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene una latitud inválida.");
                 return null;
             }
 
-            if (!double.TryParse(xm.coordenadas.longitud, NumberStyles.Any, CultureInfo.InvariantCulture, out double longitud) || longitud < -180 || longitud > 180)
+            if (string.IsNullOrEmpty(longitudStr))
+            {
+                Console.WriteLine($"Error: Monumento '{xm.nombre}' no tiene valor de longitud");
+                return null;
+            }
+
+            if (!double.TryParse(longitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double longitud) || longitud < -180 || longitud > 180)
             {
                 Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene una longitud inválida.");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(xm.codigoPostal?.ToString()))
+            {
+                Console.WriteLine($"Error: Monumento '{xm.nombre}' no tiene valor de codigo postal");
                 return null;
             }
 
@@ -36,6 +58,11 @@ namespace IEIPracticas
             {
                 Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene un código postal inválido.");
                 return null;  
+            }
+
+            if (codigoPostal.ToString().Length < 5 && !string.IsNullOrEmpty(codigoPostal.ToString()) )
+            {
+                Console.WriteLine($"Error: El codigo postal de '{xm.nombre}' no presenta las 5 cifras, se añadiran 0 a la izquierda para arreglarlo");
             }
 
             Monumento monumento = new Monumento
@@ -46,7 +73,7 @@ namespace IEIPracticas
                 Tipo = MapTipo(xm.TipoMonumento, xm.nombre),  
                 Latitud = latitud, //no funciona con double
                 Longitud = longitud,  //no funciona con double
-                Descripcion = xm.Descripcion?.CDataSection,  
+                Descripcion = Regex.Replace(xm.Descripcion?.CDataSection.Replace("'","''"),"<.*?>", string.Empty),  
                 IdLocalidad = 1  
             };
 

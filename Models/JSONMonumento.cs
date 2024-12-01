@@ -16,7 +16,7 @@ namespace IEIPracticas.Models
         public string email { get; set; }
         public string periodoHistorico { get; set; }
         public Poblacion poblacion { get; set; }
-        public Coordenadas coordenadas { get; set; }
+        public Coords coordenadas { get; set; }
         public string web { get; set; }
     }
 

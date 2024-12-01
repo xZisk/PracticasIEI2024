@@ -14,6 +14,8 @@ namespace SQLiteOperations
             connectionString = $"Data Source={databasePath}";
         }
 
+        public SqliteConnection getConnection() { return  connection; }
+
         // Método para abrir la conexión
         public void OpenConnection()
         {

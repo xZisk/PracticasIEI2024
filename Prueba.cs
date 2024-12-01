@@ -1,16 +1,19 @@
 ﻿using IEIPracticas.Extractores;
 using IEIPracticas.Mappers;
 using IEIPracticas.Models;
+using Microsoft.Data.Sqlite;
 using SQLiteOperations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IEIPracticas
 {
@@ -54,13 +57,19 @@ namespace IEIPracticas
         }
         private static void InsertMonumento(Monumento monumento, SQLiteHandler dbHandler)
         {
+            if (DoesMonumentExist(monumento.Nombre, dbHandler))
+            {
+                Console.WriteLine($"El monumento '{monumento.Nombre}' ya existe en la BD");
+                return;
+            };
+
             string query = $"INSERT INTO Monumento " +
                $"(nombre, direccion, codigo_postal, longitud, latitud, descripcion, tipo, idLocalidad) " +
                $"VALUES ('{monumento.Nombre}', " +
                $"'{monumento.Direccion}', " +
-               $"{monumento.CodigoPostal}, " +
-               $"{monumento.Longitud}, " +
-               $"{monumento.Latitud}, " +
+               $"{monumento.CodigoPostal.ToString("D5")}, " +
+               $"{monumento.Longitud.ToString(CultureInfo.InvariantCulture)}, " +
+               $"{monumento.Latitud.ToString(CultureInfo.InvariantCulture)}, " +
                $"'{monumento.Descripcion}', " +
                $"'{GetEnumDescription(monumento.Tipo)}', " +
                $"{monumento.IdLocalidad})";
@@ -99,7 +108,7 @@ namespace IEIPracticas
 
             foreach (XMLMonumento xmlMonumento in xmlMonumentos)
             {
-                var monumento = Mapper.XMLMonumentoToMonumento(xmlMonumento);
+                var monumento = XMLMapper.XMLMonumentoToMonumento(xmlMonumento);
 
                 if (monumento == null)
                 {
@@ -119,6 +128,17 @@ namespace IEIPracticas
                     if (JSONmonumentoToMonumento(jsonMonumento) == null) { monumentos.Add(JSONmonumentoToMonumento(jsonMonumento)); }
                 }
             }*/
+        }
+        private static bool DoesMonumentExist(string nombre, SQLiteHandler dbHandler)
+        {
+            string query = "SELECT COUNT(*) FROM Monumento WHERE nombre = @Nombre";
+
+            using (var command = new SqliteCommand(query, dbHandler.getConnection())) // Usa la conexión existente
+            {
+                command.Parameters.AddWithValue("@Nombre", nombre);
+                object result = command.ExecuteScalar();
+                return Convert.ToInt32(result) > 0;
+            }
         }
     }
 }
