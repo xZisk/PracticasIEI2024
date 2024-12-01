@@ -62,7 +62,6 @@ namespace IEIPracticas.Mappers
                     CodigoPostal = 0, // Placeholder
                     Longitud = longitud,
                     Latitud = latitud,
-                    IdLocalidad = 1 // Placeholder, todas ligadas a Valencia de momento
                 };
 
                 return monumento;

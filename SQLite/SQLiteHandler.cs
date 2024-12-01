@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using Newtonsoft.Json.Linq;
 
 namespace SQLiteOperations
 {
@@ -197,7 +198,7 @@ namespace SQLiteOperations
             return attribute.Description;
         }
         // Metodo para filtrar e invocar el metodo de InsertMonument(monumento) para el .csv
-        public void FilterAndInsertCSV(SQLiteHandler dbHandler)
+        public void FilterAndInsertCSV()
         {
             string csvdoc = Extractor_csv.ConvertCsvToJson(".\\FFDD\\bienes_inmuebles_interes_cultural.csv");
             List<CSVMonumento> csvMonumentos = JsonSerializer.Deserialize<List<CSVMonumento>>(csvdoc);
@@ -213,7 +214,7 @@ namespace SQLiteOperations
             }
         }
         // Metodo para filtrar e invocar el metodo de InsertMonument(monumento) para el .xml
-        public void FilterAndInsertXML(SQLiteHandler dbHandler)
+        public async Task FilterAndInsertXML()
         {
             string xmldoc = Extractor_xml.ConvertXmlToJson(".\\FFDD\\monumentos.xml");
             var jsonObject = JsonSerializer.Deserialize<JsonElement>(xmldoc);
@@ -224,7 +225,7 @@ namespace SQLiteOperations
 
             foreach (XMLMonumento xmlMonumento in xmlMonumentos)
             {
-                var monumento = XMLMapper.XMLMonumentoToMonumento(xmlMonumento);
+                var monumento = await XMLMapper.XMLMonumentoToMonumento(xmlMonumento);
 
                 if (monumento == null)
                 {

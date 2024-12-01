@@ -19,7 +19,7 @@ namespace IEIPracticas
 {
     class Prueba
     {
-        public static void Main()
+        public static async Task Main()
         {
             Console.WriteLine(Extractor_csv.ConvertCsvToJson(".\\FFDD\\bienes_inmuebles_interes_cultural.csv"));
             Console.WriteLine(Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json"));
@@ -29,19 +29,15 @@ namespace IEIPracticas
             SQLiteHandler dbHandler = new SQLiteHandler(databasePath);
             dbHandler.OpenConnection();
 
-            
+            // Estas 3 lineas limpian las tablas de la BD para ir haciendo pruebas
             dbHandler.DeleteData("DELETE FROM Monumento");
             dbHandler.DeleteData("DELETE FROM Localidad");
             dbHandler.DeleteData("DELETE FROM Provincia");
 
-            // string insertQueryMonumento = "INSERT INTO Monumento (nombre, direccion, codigo_postal, longitud, latitud, descripcion, tipo,idLocalidad) VALUES ('Cloacas Romanas', 'testdir',24700, 42.452992,-6.052759, 'testDescripcion','Puente',1 )";
-            // dbHandler.InsertData(insertQueryMonumento);
+            // dbHandler.FilterAndInsertCSV(); // Funciona
+            await dbHandler.FilterAndInsertXML();
 
-            // Consultar datos
-            
-
-            //FilterAndInsertCSV(dbHandler);
-            dbHandler.FilterAndInsertXML(dbHandler);
+            // Bloque de codigo de seleccion de todos los datos de la BD, para depuracion
             string selectQuery = "SELECT * FROM Monumento";
             dbHandler.QueryData(selectQuery);
             selectQuery = "SELECT * FROM Localidad";
