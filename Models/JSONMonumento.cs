@@ -8,27 +8,29 @@ namespace IEIPracticas.Models
 {
     public class JSONMonumento
     {
-        public string identificador { get; set; }
-        public string nombre { get; set; }
-        public string tipoMonumento { get; set; }
-        public string codigoPostal { get; set; }
-        public string Descripcion { get; set; }
-        public string email { get; set; }
-        public string periodoHistorico { get; set; }
+        public string identificador { get; set; } //No hay
+        public string documentName { get; set; } // Hecho
+        public string tipoMonumento { get; set; } // No hay, obtenerlo de documentName
+        public string postalCode { get; set; } // Hecho
+        public string documentDescription { get; set; } // Hecho
+        public string tourismEmail { get; set; } // Hecho
+        public string periodoHistorico { get; set; } // No hay
         public Poblacion poblacion { get; set; }
         public Coords coordenadas { get; set; }
-        public string web { get; set; }
+        public string friendlyUrl { get; set; } // Ns si friendly o physical
+        public string address { get; set; } // Ns si es correcto poner esto
     }
 
-    public class HorariosYTarifas
-    {
-        public string CDataSection { get; set; }
-    }
 
     public class Poblacion
     {
-        public string provincia { get; set; }
-        public string municipio { get; set; }
-        public string localidad { get; set; }
+        public string territory { get; set; } // Hecho
+        public string municipality { get; set; } //Hecho
+        public string localidad { get; set; } // Ns
+    }
+
+    public class Coords { 
+        public string latwgs84 { get; set; } // Hecho
+        public string lonwgs84 { get; set; } // Hecho
     }
 }
