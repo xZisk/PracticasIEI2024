@@ -68,6 +68,8 @@ namespace IEIPracticas
             Monumento monumento = new Monumento
             {
                 Nombre = xm.nombre,
+                Localidad = xm.poblacion.localidad,
+                Provincia = xm.poblacion.provincia,
                 Direccion = xm.calle,
                 CodigoPostal = codigoPostal,
                 Tipo = MapTipo(xm.TipoMonumento, xm.nombre),  

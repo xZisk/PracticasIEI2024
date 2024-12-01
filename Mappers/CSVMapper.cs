@@ -54,10 +54,12 @@ namespace IEIPracticas.Mappers
                 var monumento = new Monumento
                 {
                     Nombre = csvMonumento.DENOMINACION,
+                    Localidad = csvMonumento.MUNICIPIO,
+                    Provincia = csvMonumento.PROVINCIA,
                     Tipo = MapTipo(csvMonumento.CATEGORIA, csvMonumento.DENOMINACION),
                     Descripcion = MapTipo(csvMonumento.CATEGORIA, csvMonumento.DENOMINACION).ToString(),
-                    Direccion = "Generar mediante API", // Placeholder
-                    CodigoPostal = 00000, // Placeholder
+                    Direccion = "Generar mediante API (Placeholder)", // Placeholder
+                    CodigoPostal = 0, // Placeholder
                     Longitud = longitud,
                     Latitud = latitud,
                     IdLocalidad = 1 // Placeholder, todas ligadas a Valencia de momento

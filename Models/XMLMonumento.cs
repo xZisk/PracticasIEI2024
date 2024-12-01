@@ -13,10 +13,16 @@ namespace IEIPracticas.Models
         public string TipoMonumento { get; set; }  // Tipo de monumento
         public string calle { get; set; }  // Dirección
         public string codigoPostal { get; set; }  // Código Postal
+        public Municipality poblacion { get; set; }
         public Desc Descripcion { get; set; }  // Descripción (objeto con #cdata-section)
         public Coords coordenadas { get; set; }
     }
 
+    public class Municipality
+    {
+        public string localidad { get; set; }
+        public string provincia { get; set; }
+    }
 
     public class Desc
     {

@@ -10,6 +10,8 @@ namespace IEIPracticas.Models
         public int IdMonumento { get; set; }
         public string Nombre { get; set; }
         public string Direccion { get; set; }
+        public string Localidad { get; set; }
+        public string Provincia { get; set; }
         public int CodigoPostal { get; set; }
         public double Longitud { get; set; }
         public double Latitud { get; set; }
