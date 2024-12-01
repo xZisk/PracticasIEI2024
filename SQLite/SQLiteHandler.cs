@@ -176,6 +176,11 @@ namespace SQLiteOperations
 
             GetOrInsertProvinciaId(monumento.Provincia);
             int.TryParse(GetOrInsertLocalidadId(monumento.Localidad, monumento.Provincia).ToString(), out int idLocalidad);
+            if (idLocalidad == 0)
+            {
+                Console.WriteLine($"Error: Monumento '{monumento.Nombre} no esta ligado a ninguna localidad valida, rechazado.");
+                return;
+            }
 
             string query = $"INSERT INTO Monumento " +
                $"(nombre, direccion, codigo_postal, longitud, latitud, descripcion, tipo, idLocalidad) " +
@@ -198,16 +203,32 @@ namespace SQLiteOperations
             return attribute.Description;
         }
         // Metodo para filtrar e invocar el metodo de InsertMonument(monumento) para el .csv
-        public void FilterAndInsertCSV()
+        public async Task FilterAndInsertCSV()
         {
             string csvdoc = Extractor_csv.ConvertCsvToJson(".\\FFDD\\bienes_inmuebles_interes_cultural.csv");
             List<CSVMonumento> csvMonumentos = JsonSerializer.Deserialize<List<CSVMonumento>>(csvdoc);
             foreach (CSVMonumento csvMonumento in csvMonumentos)
             {
-                var monumento = CSVMapper.CSVMonumentoToMonumento(csvMonumento);
+                var monumento = await CSVMapper.CSVMonumentoToMonumento(csvMonumento);
                 if (monumento == null)
                 {
                     Console.WriteLine($"Monumento inválido detectado: {csvMonumento.DENOMINACION}");
+                    continue;
+                }
+                InsertMonumento(monumento);
+            }
+        }
+        // Metodo para filtrar e invocar el metodo de InsertMonument(monumento) para el .json
+        public async Task FilterAndInsertJSON()
+        {
+            string jsondoc = Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json");
+            List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
+            foreach (JSONMonumento jsonMonumento in jsonMonumentos)
+            {
+                var monumento = await JSONMapper.JSONMonumentoToMonumento(jsonMonumento);
+                if (monumento == null)
+                {
+                    Console.WriteLine($"Monumento inválido detectado: {jsonMonumento.documentName}");
                     continue;
                 }
                 InsertMonumento(monumento);
@@ -249,6 +270,11 @@ namespace SQLiteOperations
         // Método para devolver la id de la localidad si existe y si no, agregarla
         public int GetOrInsertLocalidadId(string nombreLocalidad, string nombreProvincia)
         {
+            if (string.IsNullOrEmpty(nombreLocalidad))
+            {
+                Console.WriteLine("Se ha intentado añadir la localidad pero carece de nombre, omitida.");
+                return 0;
+            }
             // Verificar si la localidad ya existe en la base de datos
             if (!DoesItExist("Localidad", nombreLocalidad))
             {
@@ -263,6 +289,11 @@ namespace SQLiteOperations
         // Método para devolver la id de la localidad si existe y si no, agregarla
         public int GetOrInsertProvinciaId(string nombreProvincia)
         {
+            if (string.IsNullOrEmpty(nombreProvincia))
+            {
+                Console.WriteLine("Se ha intentado añadir la provincia pero carece de nombre, omitida.");
+                return 0;
+            }
             // Verificar si la provincia ya existe en la base de datos
             if (!DoesItExist("Provincia", nombreProvincia))
             {

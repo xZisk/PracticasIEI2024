@@ -8,7 +8,6 @@ namespace IEIPracticas.Models
 {
     public class CSVMonumento
     {
-        public string IGPCV { get; set; }
         public string DENOMINACION { get; set; }
         public string PROVINCIA { get; set; }
         public string MUNICIPIO { get; set; }

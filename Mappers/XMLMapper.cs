@@ -126,6 +126,12 @@ namespace IEIPracticas
                 return null;  
             }
 
+            if (codigoPostal != 0 && (codigoPostal < 1000 || codigoPostal > 52999))
+            {
+                Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene un código postal fuera del rango válido: {codigoPostal}.");
+                return null;
+            }
+
             if (codigoPostal.ToString().Length < 5 && !string.IsNullOrEmpty(codigoPostal.ToString()) )
             {
                 Console.WriteLine($"Error: El codigo postal de '{xm.nombre}' no presenta las 5 cifras, se añadiran 0 a la izquierda para arreglarlo.");

@@ -9,7 +9,7 @@ namespace IEIPracticas.Mappers
 {
     public static class CSVMapper
     {
-        public static Monumento? CSVMonumentoToMonumento(CSVMonumento csvMonumento)
+        public static async Task<Monumento> CSVMonumentoToMonumento(CSVMonumento csvMonumento)
         {
             if (csvMonumento == null)
             {

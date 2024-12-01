@@ -34,8 +34,9 @@ namespace IEIPracticas
             dbHandler.DeleteData("DELETE FROM Localidad");
             dbHandler.DeleteData("DELETE FROM Provincia");
 
-            // dbHandler.FilterAndInsertCSV(); // Funciona
-            await dbHandler.FilterAndInsertXML();
+            //await dbHandler.FilterAndInsertCSV(); // Funciona sin scrapper ni API
+            //await dbHandler.FilterAndInsertXML(); // Funciona todo menos la API
+            await dbHandler.FilterAndInsertJSON();
 
             // Bloque de codigo de seleccion de todos los datos de la BD, para depuracion
             string selectQuery = "SELECT * FROM Monumento";
