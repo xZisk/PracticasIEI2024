@@ -1,76 +1,88 @@
-﻿using IEIPracticas.Models;
+﻿using IEIPracticas.APIs_Scrapper;
+using IEIPracticas.Models;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace IEIPracticas.Mappers
 {
     public static class CSVMapper
     {
-        public static async Task<Monumento> CSVMonumentoToMonumento(CSVMonumento csvMonumento)
+        public static async Task<Monumento> CSVMonumentoToMonumento(CSVMonumento cm)
         {
-            if (csvMonumento == null)
+            HereGeocodingService api = new HereGeocodingService();
+            string latitudStr = cm.UTMESTE.Replace(',', '.');
+            string longitudStr = cm.UTMNORTE.Replace(',', '.');
+            string direccion = "";
+            string codigoPostal = "";
+
+            if (cm == null)
             {
-                Console.WriteLine("Error: El objeto CSVMonumento no puede ser nulo.");
+                Console.WriteLine("Error: El objeto XMLMonumento no puede ser nulo.");
                 return null;
             }
 
-            try
+            if (string.IsNullOrWhiteSpace(cm.DENOMINACION))
             {
-                // Validar errores específicos
-                if (string.IsNullOrWhiteSpace(csvMonumento.DENOMINACION))
-                {
-                    Console.WriteLine("Error: Monumento sin nombre.");
-                    return null;
-                }
-
-                if (string.IsNullOrWhiteSpace(csvMonumento.UTMESTE) || string.IsNullOrWhiteSpace(csvMonumento.UTMNORTE))
-                {
-                    Console.WriteLine($"Error: Monumento '{csvMonumento.DENOMINACION}' sin coordenadas válidas (UTM Este o Norte).");
-                    return null;
-                }
-
-                double longitud = ConvertToDouble(csvMonumento.UTMESTE);
-                double latitud = ConvertToDouble(csvMonumento.UTMNORTE);
-
-                if (longitud == 0.0 || latitud == 0.0)
-                {
-                    Console.WriteLine($"Error: Monumento '{csvMonumento.DENOMINACION}' tiene coordenadas inválidas.");
-                    return null;
-                }
-
-                /*
-                int codigoPostal = 0; // Placeholder hasta obtenerlo por API
-                if (codigoPostal != 0 && (codigoPostal < 1000 || codigoPostal > 52999))
-                {
-                    Console.WriteLine($"Error: Monumento '{csvMonumento.DENOMINACION}' tiene un código postal fuera del rango válido: {codigoPostal}.");
-                    return null;
-                } 
-                */
-                
-                // Crear el objeto Monumento si pasa todas las validaciones
-                var monumento = new Monumento
-                {
-                    Nombre = csvMonumento.DENOMINACION,
-                    Localidad = csvMonumento.MUNICIPIO,
-                    Provincia = csvMonumento.PROVINCIA,
-                    Tipo = MapTipo(csvMonumento.CATEGORIA, csvMonumento.DENOMINACION),
-                    Descripcion = MapTipo(csvMonumento.CATEGORIA, csvMonumento.DENOMINACION).ToString(),
-                    Direccion = "Generar mediante API (Placeholder)", // Placeholder
-                    CodigoPostal = 0, // Placeholder
-                    Longitud = longitud,
-                    Latitud = latitud,
-                };
-
-                return monumento;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error inesperado al mapear el monumento '{csvMonumento.DENOMINACION}': {ex.Message}");
+                Console.WriteLine("Error: Monumento sin nombre.");
                 return null;
             }
+
+            if (!double.TryParse(latitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double latitud) || latitud < -90 || latitud > 90)
+            {
+                Console.WriteLine($"Error: Monumento '{cm.DENOMINACION}' tiene una latitud inválida.");
+                return null;
+            }
+
+            if (!double.TryParse(longitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double longitud) || longitud < -180 || longitud > 180)
+            {
+                Console.WriteLine($"Error: Monumento '{cm.DENOMINACION}' tiene una longitud inválida.");
+                return null;
+            }
+
+            Console.WriteLine($"Se procederá al intento de generación de dirección y codigo postal para el monumento '{cm.DENOMINACION}'");
+            direccion = await api.GetAddressFromCoordinates(latitud, longitud);
+            codigoPostal = await api.GetPostalCodeFromCoordinates(latitud, longitud);
+
+            if (string.IsNullOrEmpty(direccion))
+            {
+                Console.WriteLine($"Error: No se pudo generar dirección para '{cm.DENOMINACION}'.");
+                return null;
+            }
+            else Console.WriteLine("Exito: Direccion generada.");
+
+            if (string.IsNullOrEmpty(codigoPostal))
+            {
+                Console.WriteLine($"Error: No se pudo generar codigo postal para '{cm.DENOMINACION}'.");
+                return null;
+            }
+            else Console.WriteLine("Exito: Codigo postal generado.");
+
+            if (codigoPostal.ToString().Length < 5 && !string.IsNullOrEmpty(codigoPostal.ToString()))
+            {
+                Console.WriteLine($"Error: El codigo postal de '{cm.DENOMINACION}' no presenta las 5 cifras, se añadiran 0 a la izquierda para arreglarlo.");
+            }
+
+            Monumento monumento = new Monumento
+            {
+                Nombre = cm.DENOMINACION.Replace("\r", "").Replace("\n", "").Replace("\t", "").Trim(),
+                Localidad = cm.MUNICIPIO,
+                Provincia = cm.PROVINCIA,
+                Direccion = direccion,
+                CodigoPostal = int.Parse(codigoPostal),
+                Tipo = MapTipo(cm.CATEGORIA, cm.DENOMINACION),
+                Latitud = latitud,
+                Longitud = longitud,
+                Descripcion = $"Monumento '{cm.DENOMINACION}' situado en '{cm.MUNICIPIO}' de tipo '{MapTipo(cm.CATEGORIA, cm.DENOMINACION)}'."
+            };
+
+            return monumento;
         }
 
         private static Tipo MapTipo(string categoria, string denominacion)

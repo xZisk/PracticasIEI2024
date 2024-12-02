@@ -49,7 +49,7 @@ namespace IEIPracticas
             }
             else
             {
-                (double Latitude, double Longitude) coordinates = (0, 0);
+                (double Latitude, double Longitude) coordinates = (0.0, 0.0);
                 if (string.IsNullOrEmpty(latitudStr) || string.IsNullOrEmpty(longitudStr))
                 {
                     coordinates = await api.GetCoordinatesFromAddress(xm.calle + ", " + xm.poblacion.localidad);
@@ -77,29 +77,30 @@ namespace IEIPracticas
                 }
                 if (string.IsNullOrEmpty(xm.calle))
                 {
-                    if (!double.TryParse(latitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double lat))
+                    if (!double.TryParse(latitudStr.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out double lat))
                     {
-                        Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene una latitud inválida.");
+                        Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene una latitud inválida, imposible generar datos.");
                         return null;
                     }
-                    if (!double.TryParse(longitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double lon))
+                    if (!double.TryParse(longitudStr.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out double lon))
                     {
-                        Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene una longitud inválida.");
+                        Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene una longitud inválida, imposible generar datos.");
                         return null;
                     }
-                    xm.calle = api.GetAddressFromCoordinates(lat, lon).ToString();
+                    xm.calle = await api.GetAddressFromCoordinates(lat, lon);
                 }
-                if (string.IsNullOrEmpty(xm.calle))
+                if (string.IsNullOrEmpty(xm.calle) || xm.calle.Contains("api"))
                 {
                     Console.WriteLine($"Error: Imposible generar direccion, monumento '{xm.nombre}' rechazado.");
                     return null;
                 }
+                else Console.WriteLine($"Exito generando direccion para '{xm.nombre}', continua en filtros.");
             }
 
             if (string.IsNullOrEmpty(xm.codigoPostal?.ToString()))
             {
                 Console.WriteLine($"Error: Codigo postal de '{xm.nombre}' vacio o no definido, se intentara generar mediante las coordenadas.");
-                xm.codigoPostal = await api.GetPostalCodeFromCoordinates(double.Parse(latitudStr),double.Parse(longitudStr));
+                xm.codigoPostal = await api.GetPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture),double.Parse(longitudStr, CultureInfo.InvariantCulture));
                 if (string.IsNullOrEmpty(xm.codigoPostal))
                 {
                     Console.WriteLine($"Error: No se ha podido generar un codigo postal, monumento '{xm.nombre}' rechazado.");

@@ -10,7 +10,7 @@ namespace IEIPracticas.APIs_Scrapper
 {
     public class HereGeocodingService
     {
-        private const string ApiKey = "ICiV2kLTAvTNZXHILA14pTDUcQvQf3ZfQBvxdvKQk_8";
+        private const string ApiKey = "VQRKZ8JdzsXSteMI-6Ijefe3MRd4zbyPIH63BN3P7M8";
         private const string GeocodeUrl = "https://geocode.search.hereapi.com/v1/geocode";
         private const string ReverseGeocodeUrl = "https://revgeocode.search.hereapi.com/v1/revgeocode";
 
@@ -27,8 +27,9 @@ namespace IEIPracticas.APIs_Scrapper
          */
         public async Task<(double Latitude, double Longitude)> GetCoordinatesFromAddress(string address)
         {
-            string url = $"{GeocodeUrl}?q={address}&apiKey={ApiKey}";
-
+            string apiAddress = address.Replace(",", "").Replace(" ", "+");
+            string url = $"{GeocodeUrl}?q={apiAddress}&apiKey={ApiKey}&lang=es_ES&limit=1";
+            Console.WriteLine(url);
             try
             {
                 HttpResponseMessage response = await _httpClient.GetAsync(url);
@@ -50,8 +51,9 @@ namespace IEIPracticas.APIs_Scrapper
          */
         public async Task<string> GetAddressFromCoordinates(double latitude, double longitude)
         {
-            string url = $"{ReverseGeocodeUrl}?at={latitude},{longitude}&apiKey={ApiKey}";
-
+            string latlon = latitude.ToString().Replace(",", ".") + "," + longitude.ToString().Replace(",", ".");
+            string url = $"{ReverseGeocodeUrl}?at={latlon}&apiKey={ApiKey}&lang=es_ES&limit=1";
+            Console.WriteLine(url);
             try
             {
                 HttpResponseMessage response = await _httpClient.GetAsync(url);
@@ -73,8 +75,9 @@ namespace IEIPracticas.APIs_Scrapper
          */
         public async Task<string> GetPostalCodeFromCoordinates(double latitude, double longitude)
         {
-            string url = $"{ReverseGeocodeUrl}?at={latitude},{longitude}&apiKey={ApiKey}";
-
+            string latlon = latitude.ToString().Replace(",", ".") + "," + longitude.ToString().Replace(",", ".");
+            string url = $"{ReverseGeocodeUrl}?at={latlon}&apiKey={ApiKey}&lang=es_ES&limit=1";
+            Console.WriteLine(url);
             try
             {
                 HttpResponseMessage response = await _httpClient.GetAsync(url);

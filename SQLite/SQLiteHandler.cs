@@ -9,6 +9,10 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium;
+using IEIPracticas.APIs_Scrapper;
+using System.Data.Common;
 
 namespace SQLiteOperations
 {
@@ -22,8 +26,6 @@ namespace SQLiteOperations
         {
             connectionString = $"Data Source={databasePath}";
         }
-
-        public SqliteConnection getConnection() { return connection; }
 
         // Método para abrir la conexión
         public void OpenConnection()
@@ -168,12 +170,6 @@ namespace SQLiteOperations
         // Metodo para insertar un monumento
         private void InsertMonumento(Monumento monumento)
         {
-            if (DoesItExist("Monumento", monumento.Nombre))
-            {
-                Console.WriteLine($"El monumento '{monumento.Nombre}' ya existe en la BD");
-                return;
-            };
-
             GetOrInsertProvinciaId(monumento.Provincia);
             int.TryParse(GetOrInsertLocalidadId(monumento.Localidad, monumento.Provincia).ToString(), out int idLocalidad);
             if (idLocalidad == 0)
@@ -182,18 +178,34 @@ namespace SQLiteOperations
                 return;
             }
 
-            string query = $"INSERT INTO Monumento " +
-               $"(nombre, direccion, codigo_postal, longitud, latitud, descripcion, tipo, idLocalidad) " +
-               $"VALUES ('{monumento.Nombre}', " +
-               $"'{monumento.Direccion}', " +
-               $"{monumento.CodigoPostal.ToString("D5")}, " +
-               $"{monumento.Longitud.ToString(CultureInfo.InvariantCulture)}, " +
-               $"{monumento.Latitud.ToString(CultureInfo.InvariantCulture)}, " +
-               $"'{monumento.Descripcion}', " +
-               $"'{GetEnumDescription(monumento.Tipo)}', " +
-               $"{idLocalidad})";
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    string insertQuery = "INSERT INTO Monumento (nombre, direccion, codigo_postal, longitud, latitud, descripcion, tipo, idLocalidad) " +
+                         "VALUES (@Nombre, @Direccion, @CodigoPostal, @Longitud, @Latitud, @Descripcion, @Tipo, @idLocalidad)";
+                    using (var cmd = new SqliteCommand(insertQuery, connection, transaction))
+                    {
+                        cmd.Parameters.AddWithValue("@Nombre", monumento.Nombre);
+                        cmd.Parameters.AddWithValue("@Direccion", monumento.Direccion);
+                        cmd.Parameters.AddWithValue("@CodigoPostal", monumento.CodigoPostal.ToString("D5"));
+                        cmd.Parameters.AddWithValue("@Longitud", monumento.Longitud);
+                        cmd.Parameters.AddWithValue("@Latitud", monumento.Latitud);
+                        cmd.Parameters.AddWithValue("@Descripcion", monumento.Descripcion);
+                        cmd.Parameters.AddWithValue("@Tipo", GetEnumDescription(monumento.Tipo));
+                        cmd.Parameters.AddWithValue("@idLocalidad", idLocalidad);
 
-            InsertData(query);
+                        // Ejecutar la consulta
+                        cmd.ExecuteNonQuery();
+                    }
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Error al insertar datos: {ex.Message}");
+                }
+            }
         }
         // Metodo para conseguir la descripcion del tipo de monumento
         public string GetEnumDescription(Enum value)
@@ -205,10 +217,32 @@ namespace SQLiteOperations
         // Metodo para filtrar e invocar el metodo de InsertMonument(monumento) para el .csv
         public async Task FilterAndInsertCSV()
         {
+            var options = new ChromeOptions();
+            // Configura Chrome para suprimir mensajes no críticos
+            options.AddArgument("--log-level=3");
+            options.AddArgument("--disable-logging");
+            IWebDriver driver = new ChromeDriver(options);
+            IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+            IDictionary<string, object> vars = new Dictionary<string, object>();
             string csvdoc = Extractor_csv.ConvertCsvToJson(".\\FFDD\\bienes_inmuebles_interes_cultural.csv");
             List<CSVMonumento> csvMonumentos = JsonSerializer.Deserialize<List<CSVMonumento>>(csvdoc);
             foreach (CSVMonumento csvMonumento in csvMonumentos)
             {
+                if (DoesItExist("Monumento", csvMonumento.DENOMINACION))
+                {
+                    Console.WriteLine($"El monumento '{csvMonumento.DENOMINACION}' ya existe en la BD");
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(csvMonumento.UTMESTE) || string.IsNullOrEmpty(csvMonumento.UTMNORTE))
+                {
+                    Console.WriteLine($"Error: Coordenadas del monumento '{csvMonumento.DENOMINACION}' no válidas, rechazado.");
+                    continue;
+                }
+                (string Latitude, string Longitude) latlon = SeleniumScraper.Scraper(driver, csvMonumento.UTMESTE, csvMonumento.UTMNORTE);
+
+                csvMonumento.UTMESTE = latlon.Latitude;
+                csvMonumento.UTMNORTE = latlon.Longitude;
                 var monumento = await CSVMapper.CSVMonumentoToMonumento(csvMonumento);
                 if (monumento == null)
                 {
@@ -217,6 +251,7 @@ namespace SQLiteOperations
                 }
                 InsertMonumento(monumento);
             }
+            driver.Quit();
         }
         // Metodo para filtrar e invocar el metodo de InsertMonument(monumento) para el .json
         public async Task FilterAndInsertJSON()
@@ -225,6 +260,11 @@ namespace SQLiteOperations
             List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
             foreach (JSONMonumento jsonMonumento in jsonMonumentos)
             {
+                if (DoesItExist("Monumento", jsonMonumento.documentName))
+                {
+                    Console.WriteLine($"El monumento '{jsonMonumento.documentName}' ya existe en la BD");
+                    continue;
+                }
                 var monumento = await JSONMapper.JSONMonumentoToMonumento(jsonMonumento);
                 if (monumento == null)
                 {
@@ -246,6 +286,11 @@ namespace SQLiteOperations
 
             foreach (XMLMonumento xmlMonumento in xmlMonumentos)
             {
+                if (DoesItExist("Monumento", xmlMonumento.nombre))
+                {
+                    Console.WriteLine($"El monumento '{xmlMonumento.nombre}' ya existe en la BD");
+                    continue;
+                }
                 var monumento = await XMLMapper.XMLMonumentoToMonumento(xmlMonumento);
 
                 if (monumento == null)

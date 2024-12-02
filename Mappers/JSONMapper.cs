@@ -51,10 +51,10 @@ namespace IEIPracticas.Mappers
             }
             else
             {
-                (double Latitude, double Longitude) coordinates = (0, 0);
+                (double Latitude, double Longitude) coordinates = (0.0, 0.0);
                 if (string.IsNullOrEmpty(latitudStr) || string.IsNullOrEmpty(longitudStr))
                 {
-                    coordinates = await api.GetCoordinatesFromAddress(jsonMonumento.address + ", " + jsonMonumento.locality);
+                    coordinates = await api.GetCoordinatesFromAddress(jsonMonumento.address + ", " + jsonMonumento.municipality);
                     Console.WriteLine($"Exito generando direccion de '{jsonMonumento.documentName}', continua en filtros.");
                 }
                 if (string.IsNullOrEmpty(latitudStr))
@@ -79,29 +79,30 @@ namespace IEIPracticas.Mappers
                 }
                 if (string.IsNullOrEmpty(jsonMonumento.address))
                 {
-                    if (!double.TryParse(latitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double lat))
+                    if (!double.TryParse(latitudStr.Replace(",","."), NumberStyles.Any, CultureInfo.InvariantCulture, out double lat))
                     {
-                        Console.WriteLine($"Error: Monumento '{jsonMonumento.documentName}' tiene una latitud inválida.");
+                        Console.WriteLine($"Error: Monumento '{jsonMonumento.documentName}' tiene una latitud inválida, imposible generar datos.");
                         return null;
                     }
-                    if (!double.TryParse(longitudStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double lon))
+                    if (!double.TryParse(longitudStr.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out double lon))
                     {
-                        Console.WriteLine($"Error: Monumento '{jsonMonumento.documentName}' tiene una longitud inválida.");
+                        Console.WriteLine($"Error: Monumento '{jsonMonumento.documentName}' tiene una longitud inválida, imposible generar datos.");
                         return null;
                     }
-                    jsonMonumento.address = api.GetAddressFromCoordinates(lat, lon).ToString();
+                    jsonMonumento.address = await api.GetAddressFromCoordinates(lat, lon);
                 }
-                if (string.IsNullOrEmpty(jsonMonumento.address))
+                if (string.IsNullOrEmpty(jsonMonumento.address) || jsonMonumento.address.Contains("api"))
                 {
                     Console.WriteLine($"Error: Imposible generar direccion, monumento '{jsonMonumento.documentName}' rechazado.");
                     return null;
                 }
+                else Console.WriteLine($"Exito generando direccion para '{jsonMonumento.documentName}', continua en filtros.");
             }
 
             if (string.IsNullOrEmpty(jsonMonumento.postalCode?.ToString()))
             {
                 Console.WriteLine($"Error: Codigo postal de '{jsonMonumento.documentName}' vacio o no definido, se intentara generar mediante las coordenadas.");
-                jsonMonumento.postalCode = await api.GetPostalCodeFromCoordinates(double.Parse(latitudStr), double.Parse(longitudStr));
+                jsonMonumento.postalCode = await api.GetPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture), double.Parse(longitudStr, CultureInfo.InvariantCulture));
                 if (string.IsNullOrEmpty(jsonMonumento.postalCode))
                 {
                     Console.WriteLine($"Error: No se ha podido generar un codigo postal, monumento '{jsonMonumento.documentName}' rechazado.");
@@ -142,11 +143,11 @@ namespace IEIPracticas.Mappers
             var monumento = new Monumento
             {
                 Nombre = jsonMonumento.documentName,
-                Localidad = jsonMonumento.locality,
+                Localidad = jsonMonumento.municipality,
                 Provincia = jsonMonumento.territory,
                 Tipo = MapTipo(jsonMonumento.documentName),
                 Descripcion = jsonMonumento.documentDescription,
-                Direccion = jsonMonumento.address + ", " + jsonMonumento.postalCode + " " + jsonMonumento.locality,
+                Direccion = jsonMonumento.address + ", " + jsonMonumento.postalCode + " " + jsonMonumento.municipality,
                 CodigoPostal = codigoPostal,
                 Longitud = longitud,
                 Latitud = latitud,
