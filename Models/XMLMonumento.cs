@@ -10,7 +10,7 @@ namespace IEIPracticas.Models
     public class XMLMonumento
     {
         public string nombre { get; set; }  // Nombre del monumento
-        public string TipoMonumento { get; set; }  // Tipo de monumento
+        public string tipoMonumento { get; set; }  // Tipo de monumento
         public string calle { get; set; }  // Dirección
         public string codigoPostal { get; set; }  // Código Postal
         public Municipality poblacion { get; set; }

@@ -145,7 +145,7 @@ namespace IEIPracticas
                 Provincia = xm.poblacion.provincia,
                 Direccion = xm.calle + ", " + xm.codigoPostal + " " + xm.poblacion.localidad,
                 CodigoPostal = codigoPostal,
-                Tipo = MapTipo(xm.TipoMonumento, xm.nombre),  
+                Tipo = MapTipo(xm.tipoMonumento, xm.nombre),  
                 Latitud = latitud,
                 Longitud = longitud,
                 Descripcion = Regex.Replace(xm.Descripcion?.CDataSection.Replace("'","''"),"<.*?>", string.Empty),

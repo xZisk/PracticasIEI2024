@@ -174,10 +174,13 @@ namespace IEIPracticas.Mappers
             if (documentName.Contains("Palacio", StringComparison.OrdinalIgnoreCase) ||
                 documentName.Contains("Castillo", StringComparison.OrdinalIgnoreCase) ||
                 documentName.Contains("Torre", StringComparison.OrdinalIgnoreCase) ||
-                documentName.Contains("Fortaleza", StringComparison.OrdinalIgnoreCase))
+                documentName.Contains("Fortaleza", StringComparison.OrdinalIgnoreCase) ||
+                documentName.Contains("Fuerte", StringComparison.OrdinalIgnoreCase))
                 return Tipo.Castillo; // Castillo-Fortaleza-Torre
 
-            if (documentName.Contains("Edificio", StringComparison.OrdinalIgnoreCase))
+            if (documentName.Contains("Edificio", StringComparison.OrdinalIgnoreCase) ||
+                documentName.Contains("Molino", StringComparison.OrdinalIgnoreCase) ||
+                documentName.Contains("Teatro", StringComparison.OrdinalIgnoreCase))
                 return Tipo.Edificio; // Edificio singular
 
             if (documentName.Contains("Puente", StringComparison.OrdinalIgnoreCase))
