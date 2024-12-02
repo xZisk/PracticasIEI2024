@@ -47,8 +47,9 @@ namespace IEIPracticas.Mappers
             }
 
             Console.WriteLine($"Se procederá al intento de generación de dirección y codigo postal para el monumento '{cm.DENOMINACION}'");
-            direccion = await api.GetAddressFromCoordinates(latitud, longitud);
-            codigoPostal = await api.GetPostalCodeFromCoordinates(latitud, longitud);
+            (string address, string postalCode) responseApi = await api.GetAddressAndPostalCodeFromCoordinates(latitud, longitud);
+            direccion = responseApi.address;
+            codigoPostal = responseApi.postalCode;
 
             if (string.IsNullOrEmpty(direccion))
             {

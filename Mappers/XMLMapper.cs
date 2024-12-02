@@ -13,7 +13,8 @@ namespace IEIPracticas
         {
             HereGeocodingService api = new HereGeocodingService();
             string latitudStr = xm.coordenadas.latitud.Replace(',', '.'); 
-            string longitudStr = xm.coordenadas.longitud.Replace(',', '.'); 
+            string longitudStr = xm.coordenadas.longitud.Replace(',', '.');
+            (string adress, string postalCode) respuestaApi;
 
             if (xm == null)
             {
@@ -87,7 +88,8 @@ namespace IEIPracticas
                         Console.WriteLine($"Error: Monumento '{xm.nombre}' tiene una longitud inválida, imposible generar datos.");
                         return null;
                     }
-                    xm.calle = await api.GetAddressFromCoordinates(lat, lon);
+                    respuestaApi = await api.GetAddressAndPostalCodeFromCoordinates(lat, lon);
+                    xm.calle = respuestaApi.adress;
                 }
                 if (string.IsNullOrEmpty(xm.calle) || xm.calle.Contains("api"))
                 {
@@ -100,7 +102,8 @@ namespace IEIPracticas
             if (string.IsNullOrEmpty(xm.codigoPostal?.ToString()))
             {
                 Console.WriteLine($"Error: Codigo postal de '{xm.nombre}' vacio o no definido, se intentara generar mediante las coordenadas.");
-                xm.codigoPostal = await api.GetPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture),double.Parse(longitudStr, CultureInfo.InvariantCulture));
+                respuestaApi = await api.GetAddressAndPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture),double.Parse(longitudStr, CultureInfo.InvariantCulture));7
+                xm.codigoPostal = respuestaApi.postalCode;
                 if (string.IsNullOrEmpty(xm.codigoPostal))
                 {
                     Console.WriteLine($"Error: No se ha podido generar un codigo postal, monumento '{xm.nombre}' rechazado.");

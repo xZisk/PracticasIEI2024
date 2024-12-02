@@ -44,12 +44,12 @@ namespace IEIPracticas.APIs_Scrapper
                 return (0, 0); // Valores por defecto en caso de error
             }
         }
-        /* Obtiene la dirección a partir de coordenadas geográficas usando la API de HERE.
+        /* Obtiene la dirección y codigo postal a partir de coordenadas geográficas usando la API de HERE.
          * latitude == Latitud
          * longitude == Longitud
-         * returns Una dirección como string
+         * returns Una dupla de dirección y codigo postal como (string, string)
          */
-        public async Task<string> GetAddressFromCoordinates(double latitude, double longitude)
+        public async Task<(string, string)> GetAddressAndPostalCodeFromCoordinates(double latitude, double longitude)
         {
             string latlon = latitude.ToString().Replace(",", ".") + "," + longitude.ToString().Replace(",", ".");
             string url = $"{ReverseGeocodeUrl}?at={latlon}&apiKey={ApiKey}&lang=es_ES&limit=1";
@@ -60,51 +60,27 @@ namespace IEIPracticas.APIs_Scrapper
                 response.EnsureSuccessStatusCode();
 
                 string jsonResponse = await response.Content.ReadAsStringAsync();
-                return ParseAddress(jsonResponse);
+                return ParseAddressAndPostalCode(jsonResponse);
             }
             catch (HttpRequestException e)
             {
                 Console.WriteLine($"Error al conectar con la API de HERE: {e.Message}");
-                return null; // Null en caso de error
-            }
-        }
-        /* Obtiene el codigo postal a partir de coordenadas geográficas usando la API de HERE.
-         * latitude = Latitud
-         * longitude = Longitud
-         * returns Un codigo postal como string
-         */
-        public async Task<string> GetPostalCodeFromCoordinates(double latitude, double longitude)
-        {
-            string latlon = latitude.ToString().Replace(",", ".") + "," + longitude.ToString().Replace(",", ".");
-            string url = $"{ReverseGeocodeUrl}?at={latlon}&apiKey={ApiKey}&lang=es_ES&limit=1";
-            Console.WriteLine(url);
-            try
-            {
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-
-                string jsonResponse = await response.Content.ReadAsStringAsync();
-                return ParsePostalCode(jsonResponse);
-            }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine($"Error al conectar con la API de HERE: {e.Message}");
-                return null; // Valor por defecto en caso de error
+                return (null, null); // Null en caso de error
             }
         }
         // Extrae el codigo postal de la respuesta JSON.
-        private string ParsePostalCode(string jsonResponse)
+        private (string, string) ParseAddressAndPostalCode(string jsonResponse)
         {
             try
             {
                 var jsonDoc = JsonDocument.Parse(jsonResponse);
-                var address = jsonDoc.RootElement.GetProperty("items")[0].GetProperty("address");
-                return address.GetProperty("postalCode").GetString();
+                var address = jsonDoc.RootElement.GetProperty("items")[0].GetProperty("address");;
+                return (address.GetProperty("label").GetString(), address.GetProperty("postalCode").GetString());
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Error al procesar la respuesta de la API: {e.Message}");
-                return null; // En caso de error, devolver null
+                return (null, null); // En caso de error, devolver null
             }
         }
 
@@ -124,7 +100,7 @@ namespace IEIPracticas.APIs_Scrapper
             return (0, 0); // Valores por defecto en caso de error
         }
         // Extrae la dirección completa de la respuesta JSON.
-        private string ParseAddress(string jsonResponse)
+        /*private string ParseAddress(string jsonResponse)
         {
             var json = JObject.Parse(jsonResponse);
             var address = json["items"]?[0]?["address"]?["label"]?.ToString();
@@ -136,6 +112,6 @@ namespace IEIPracticas.APIs_Scrapper
 
             Console.WriteLine("No se encontró una dirección para las coordenadas proporcionadas.");
             return null;
-        }
+        }*/
     }
 }

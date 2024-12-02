@@ -17,6 +17,7 @@ namespace IEIPracticas.Mappers
             HereGeocodingService api = new HereGeocodingService();
             string latitudStr = jsonMonumento.latwgs84.Replace(',', '.');
             string longitudStr = jsonMonumento.lonwgs84.Replace(',', '.');
+            (string adress, string postalCode) respuestaApi;
             if (jsonMonumento == null)
             {
                 Console.WriteLine("Error: El objeto JSONMonumento no puede ser nulo.");
@@ -89,7 +90,8 @@ namespace IEIPracticas.Mappers
                         Console.WriteLine($"Error: Monumento '{jsonMonumento.documentName}' tiene una longitud inválida, imposible generar datos.");
                         return null;
                     }
-                    jsonMonumento.address = await api.GetAddressFromCoordinates(lat, lon);
+                    respuestaApi = await api.GetAddressAndPostalCodeFromCoordinates(lat, lon);
+                    jsonMonumento.address = respuestaApi.adress;
                 }
                 if (string.IsNullOrEmpty(jsonMonumento.address) || jsonMonumento.address.Contains("api"))
                 {
@@ -102,7 +104,8 @@ namespace IEIPracticas.Mappers
             if (string.IsNullOrEmpty(jsonMonumento.postalCode?.ToString()))
             {
                 Console.WriteLine($"Error: Codigo postal de '{jsonMonumento.documentName}' vacio o no definido, se intentara generar mediante las coordenadas.");
-                jsonMonumento.postalCode = await api.GetPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture), double.Parse(longitudStr, CultureInfo.InvariantCulture));
+                respuestaApi = await api.GetAddressAndPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture), double.Parse(longitudStr, CultureInfo.InvariantCulture));
+                jsonMonumento.postalCode = respuestaApi.postalCode;
                 if (string.IsNullOrEmpty(jsonMonumento.postalCode))
                 {
                     Console.WriteLine($"Error: No se ha podido generar un codigo postal, monumento '{jsonMonumento.documentName}' rechazado.");
