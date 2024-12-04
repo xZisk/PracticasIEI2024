@@ -59,7 +59,7 @@ namespace IEIPracticas
                     dbHandler.DeleteData("DELETE FROM sqlite_sequence"); 
                     break;
                 default:
-                    Console.WriteLine("Se ha introducido un valor no valido"); return;
+                    Console.WriteLine("Se ha introducido un valor no valido"); Start(dbHandler); return;
             }
             // Bloque de código de selección de todos los datos de la BD
             string selectQuery = "SELECT * FROM Monumento";

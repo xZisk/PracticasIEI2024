@@ -54,7 +54,6 @@ namespace IEIPracticas
                 if (string.IsNullOrEmpty(latitudStr) || string.IsNullOrEmpty(longitudStr))
                 {
                     coordinates = await api.GetCoordinatesFromAddress(xm.calle + ", " + xm.poblacion.localidad);
-                    Console.WriteLine($"Exito generando direccion de '{xm.nombre}', continua en filtros.");
                 }
                 if (string.IsNullOrEmpty(latitudStr))
                 { 
@@ -90,13 +89,8 @@ namespace IEIPracticas
                     }
                     respuestaApi = await api.GetAddressAndPostalCodeFromCoordinates(lat, lon);
                     xm.calle = respuestaApi.adress;
+                    Console.WriteLine($"Exito generando direccion de '{xm.nombre}', continua en filtros.");
                 }
-                if (string.IsNullOrEmpty(xm.calle) || xm.calle.Contains("api"))
-                {
-                    Console.WriteLine($"Error: Imposible generar direccion, monumento '{xm.nombre}' rechazado.");
-                    return null;
-                }
-                else Console.WriteLine($"Exito generando direccion para '{xm.nombre}', continua en filtros.");
             }
 
             if (string.IsNullOrEmpty(xm.codigoPostal?.ToString()))

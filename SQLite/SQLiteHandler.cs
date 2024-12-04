@@ -251,7 +251,7 @@ namespace SQLiteOperations
             {
                 if (EsNombreDuplicado("Monumento", csvMonumento.DENOMINACION).Item1)
                 {
-                    Console.WriteLine($"El monumento '{csvMonumento.DENOMINACION}' ya existe en la BD");
+                    Console.WriteLine($"Error: El monumento '{csvMonumento.DENOMINACION}' ya existe en la BD, rechazado.");
                     continue;
                 }
 
@@ -267,7 +267,6 @@ namespace SQLiteOperations
                 var monumento = await CSVMapper.CSVMonumentoToMonumento(csvMonumento);
                 if (monumento == null)
                 {
-                    Console.WriteLine($"Monumento inválido detectado: {csvMonumento.DENOMINACION}");
                     continue;
                 }
                 InsertMonumento(monumento);
@@ -283,13 +282,12 @@ namespace SQLiteOperations
             {
                 if (EsNombreDuplicado("Monumento", jsonMonumento.documentName).Item1)
                 {
-                    Console.WriteLine($"El monumento '{jsonMonumento.documentName}' ya existe en la BD");
+                    Console.WriteLine($"Error: El monumento '{jsonMonumento.documentName}' ya existe en la BD, rechazado.");
                     continue;
                 }
                 var monumento = await JSONMapper.JSONMonumentoToMonumento(jsonMonumento);
                 if (monumento == null)
                 {
-                    Console.WriteLine($"Monumento inválido detectado: {jsonMonumento.documentName}");
                     continue;
                 }
                 InsertMonumento(monumento);
@@ -309,30 +307,18 @@ namespace SQLiteOperations
             {
                 if (EsNombreDuplicado("Monumento", xmlMonumento.nombre).Item1)
                 {
-                    Console.WriteLine($"El monumento '{xmlMonumento.nombre}' ya existe en la BD");
+                    Console.WriteLine($"Error: El monumento '{xmlMonumento.nombre}' ya existe en la BD, rechazado");
                     continue;
                 }
                 var monumento = await XMLMapper.XMLMonumentoToMonumento(xmlMonumento);
 
                 if (monumento == null)
                 {
-                    Console.WriteLine($"Monumento inválido detectado: {xmlMonumento.nombre}");
                     continue;
                 }
                 InsertMonumento(monumento);
             }
         }
-        // Metodo para filtrar e invocar el metodo de InsertMonument(monumento) para el .json
-        /*public void FilterAndInsertJSON()
-        {
-            string jsondoc = Extractor_json.LoadJsonAsString(".\\FFDD\\edificios.json");
-            List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
-            List<Monumento> monumentos = new List<Monumento>();
-            foreach (JSONMonumento jsonMonumento in jsonMonumentos)
-            {
-                if (JSONmonumentoToMonumento(jsonMonumento) == null) { monumentos.Add(JSONmonumentoToMonumento(jsonMonumento)); }
-            }
-        }*/
         // Método para devolver la id de la localidad si existe y si no, agregarla
         public int GetOrInsertLocalidadId(string nombreLocalidad, string nombreProvincia)
         {

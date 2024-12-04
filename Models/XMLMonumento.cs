@@ -9,12 +9,12 @@ namespace IEIPracticas.Models
 {
     public class XMLMonumento
     {
-        public string nombre { get; set; }  // Nombre del monumento
-        public string tipoMonumento { get; set; }  // Tipo de monumento
-        public string calle { get; set; }  // Dirección
-        public string codigoPostal { get; set; }  // Código Postal
+        public string nombre { get; set; }  
+        public string tipoMonumento { get; set; }  
+        public string calle { get; set; } 
+        public string codigoPostal { get; set; }  
         public Municipality poblacion { get; set; }
-        public Desc Descripcion { get; set; }  // Descripción (objeto con #cdata-section)
+        public Desc Descripcion { get; set; }  
         public Coords coordenadas { get; set; }
     }
 
@@ -27,7 +27,7 @@ namespace IEIPracticas.Models
     public class Desc
     {
         [JsonPropertyName("#cdata-section")]
-        public string CDataSection { get; set; }  // Este es el campo que contiene el texto
+        public string CDataSection { get; set; }  
     }
     public class Coords
     {
