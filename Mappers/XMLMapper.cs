@@ -102,7 +102,7 @@ namespace IEIPracticas
             if (string.IsNullOrEmpty(xm.codigoPostal?.ToString()))
             {
                 Console.WriteLine($"Error: Codigo postal de '{xm.nombre}' vacio o no definido, se intentara generar mediante las coordenadas.");
-                respuestaApi = await api.GetAddressAndPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture),double.Parse(longitudStr, CultureInfo.InvariantCulture));7
+                respuestaApi = await api.GetAddressAndPostalCodeFromCoordinates(double.Parse(latitudStr, CultureInfo.InvariantCulture),double.Parse(longitudStr, CultureInfo.InvariantCulture));
                 xm.codigoPostal = respuestaApi.postalCode;
                 if (string.IsNullOrEmpty(xm.codigoPostal))
                 {

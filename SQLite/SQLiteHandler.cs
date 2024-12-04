@@ -13,6 +13,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium;
 using IEIPracticas.APIs_Scrapper;
 using System.Data.Common;
+using SimMetrics.Net.Metric;
 
 namespace SQLiteOperations
 {
@@ -84,6 +85,7 @@ namespace SQLiteOperations
                 using (var command = new SqliteCommand(insertQuery, connection))
                 {
                     int rowsAffected = command.ExecuteNonQuery();
+                    Console.WriteLine($"Resultados de la ejecucion ('{insertQuery}'):");
                     Console.WriteLine($"{rowsAffected} fila(s) insertada(s).");
                 }
             }
@@ -101,6 +103,7 @@ namespace SQLiteOperations
                 using (var command = new SqliteCommand(deleteQuery, connection))
                 {
                     int rowsAffected = command.ExecuteNonQuery();
+                    Console.WriteLine($"Resultados de la ejecucion ('{deleteQuery}'):");
                     Console.WriteLine($"{rowsAffected} fila(s) eliminada(s).");
                 }
             }
@@ -118,7 +121,7 @@ namespace SQLiteOperations
                 using (var command = new SqliteCommand(selectQuery, connection))
                 using (var reader = command.ExecuteReader())
                 {
-                    Console.WriteLine("Resultados de la consulta:");
+                    Console.WriteLine($"Resultados de la consulta ('{selectQuery}'):");
                     while (reader.Read())
                     {
                         for (int i = 0; i < reader.FieldCount; i++)
@@ -155,17 +158,35 @@ namespace SQLiteOperations
                 return null;
             }
         }
-        //Metodo para comprobar si algo del nombre especificado existe en la tabla especificada
-        public bool DoesItExist(string table, string nombre)
+        //Metodo para comprobar si algo del nombre especificado o muy similar existe en la tabla especificada
+        //Devuelve un valor booleano con el veredicto y el nombre a usar en la BD
+        private (bool, string) EsNombreDuplicado(string table, string nuevoNombre)
         {
-            string query = $"SELECT COUNT(*) FROM {table} WHERE nombre = @Nombre";
+            string query = $"SELECT nombre FROM {table}";
+            List<string> nombresExistentes = new List<string>();
+            var lev = new Levenstein();
+            double umbral = 0.85;
 
-            using (var command = new SqliteCommand(query, connection)) // Usa la conexión existente
+            using (var command = new SqliteCommand(query, connection))
+            using (var reader = command.ExecuteReader())
             {
-                command.Parameters.AddWithValue("@Nombre", nombre);
-                object result = command.ExecuteScalar();
-                return Convert.ToInt32(result) > 0;
+                while (reader.Read())
+                {
+                    nombresExistentes.Add(reader.GetValue(0).ToString());
+                }
             }
+
+            foreach (var nombre in nombresExistentes)
+            {
+                double similitud = lev.GetSimilarity(nombre, nuevoNombre);
+                if (similitud == 1) return (true, nombre);
+                if (similitud >= umbral) 
+                {
+                    Console.WriteLine($"'{nuevoNombre}' es similar a '{nombre}' con una similitud del {similitud * 100:F2}%. Se asume error tipográfico y se rechaza.");
+                    return (true, nombre);
+                }
+            }
+            return (false, nuevoNombre);
         }
         // Metodo para insertar un monumento
         private void InsertMonumento(Monumento monumento)
@@ -228,7 +249,7 @@ namespace SQLiteOperations
             List<CSVMonumento> csvMonumentos = JsonSerializer.Deserialize<List<CSVMonumento>>(csvdoc);
             foreach (CSVMonumento csvMonumento in csvMonumentos)
             {
-                if (DoesItExist("Monumento", csvMonumento.DENOMINACION))
+                if (EsNombreDuplicado("Monumento", csvMonumento.DENOMINACION).Item1)
                 {
                     Console.WriteLine($"El monumento '{csvMonumento.DENOMINACION}' ya existe en la BD");
                     continue;
@@ -260,7 +281,7 @@ namespace SQLiteOperations
             List<JSONMonumento> jsonMonumentos = JsonSerializer.Deserialize<List<JSONMonumento>>(jsondoc);
             foreach (JSONMonumento jsonMonumento in jsonMonumentos)
             {
-                if (DoesItExist("Monumento", jsonMonumento.documentName))
+                if (EsNombreDuplicado("Monumento", jsonMonumento.documentName).Item1)
                 {
                     Console.WriteLine($"El monumento '{jsonMonumento.documentName}' ya existe en la BD");
                     continue;
@@ -286,7 +307,7 @@ namespace SQLiteOperations
 
             foreach (XMLMonumento xmlMonumento in xmlMonumentos)
             {
-                if (DoesItExist("Monumento", xmlMonumento.nombre))
+                if (EsNombreDuplicado("Monumento", xmlMonumento.nombre).Item1)
                 {
                     Console.WriteLine($"El monumento '{xmlMonumento.nombre}' ya existe en la BD");
                     continue;
@@ -317,37 +338,45 @@ namespace SQLiteOperations
         {
             if (string.IsNullOrEmpty(nombreLocalidad))
             {
-                Console.WriteLine("Se ha intentado añadir la localidad pero carece de nombre, omitida.");
+                Console.WriteLine("Se ha intentado añadir una localidad pero carece de nombre, omitida.");
                 return 0;
             }
-            // Verificar si la localidad ya existe en la base de datos
-            if (!DoesItExist("Localidad", nombreLocalidad))
+            (bool veredicto, string nombre) filtro = EsNombreDuplicado("Localidad", nombreLocalidad);
+            if (!filtro.veredicto)
             {
-                // Insertar la nueva localidad
-                string insertLocalidad = $"INSERT INTO Localidad (nombre, idProvincia) VALUES ('{nombreLocalidad}', '{GetOrInsertProvinciaId(nombreProvincia)}')";
-                InsertData(insertLocalidad);
+                string insertLocalidad = "INSERT INTO Localidad (nombre, idProvincia) VALUES (@NombreLocalidad, @IdProvincia)";
+                using (var command = new SqliteCommand(insertLocalidad, connection))
+                {
+                    command.Parameters.AddWithValue("@NombreLocalidad", filtro.nombre);
+                    command.Parameters.AddWithValue("@IdProvincia", GetOrInsertProvinciaId(nombreProvincia));
+                    command.ExecuteNonQuery();
+                }
             }
-            string queryIdLocalidad = $"SELECT idLocalidad FROM Localidad WHERE nombre = '{nombreLocalidad}'";
+            string queryIdLocalidad = $"SELECT idLocalidad FROM Localidad WHERE nombre = '{filtro.nombre}'";
             var idLocalidad = GetId(queryIdLocalidad);
             return int.Parse(idLocalidad);
         }
+
         // Método para devolver la id de la localidad si existe y si no, agregarla
         public int GetOrInsertProvinciaId(string nombreProvincia)
         {
             if (string.IsNullOrEmpty(nombreProvincia))
             {
-                Console.WriteLine("Se ha intentado añadir la provincia pero carece de nombre, omitida.");
+                Console.WriteLine("Se ha intentado añadir una provincia pero carece de nombre, omitida.");
                 return 0;
             }
-            // Verificar si la provincia ya existe en la base de datos
-            if (!DoesItExist("Provincia", nombreProvincia))
+            (bool veredicto, string nombre) filtro = EsNombreDuplicado("Provincia", nombreProvincia);
+            if (!filtro.veredicto)
             {
-                // Insertar la nueva provincia
-                string insertProvincia = $"INSERT INTO Provincia (nombre) VALUES ('{nombreProvincia}')";
-                InsertData(insertProvincia);
+                string insertProvincia = "INSERT INTO Provincia (nombre) VALUES (@NombreProvincia)";
+                using (var command = new SqliteCommand(insertProvincia, connection))
+                {
+                    command.Parameters.AddWithValue("@NombreProvincia", filtro.nombre);
+                    command.ExecuteNonQuery();
+                }
             }
-            string queryIdProvincia = $"SELECT idProvincia FROM Provincia WHERE nombre = '{nombreProvincia}'";
-            var idProvincia = GetId(queryIdProvincia); // Asegúrate de obtener el ID correctamente
+            string queryIdProvincia = $"SELECT idProvincia FROM Provincia WHERE nombre = '{filtro.nombre}'";
+            var idProvincia = GetId(queryIdProvincia);
             return int.Parse(idProvincia);
         }
     }

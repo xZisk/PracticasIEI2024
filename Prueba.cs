@@ -18,6 +18,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Xml.Linq;
+using SimMetrics.Net.Metric;
 
 namespace IEIPracticas
 {
@@ -25,26 +26,42 @@ namespace IEIPracticas
     {
         public static void Main()
         {
-            Task.Run(async () => await RunAsync()).GetAwaiter().GetResult();
-        }
-
-        public static async Task RunAsync()
-        {
             string databasePath = "./SQLite/dbproject.db";
             SQLiteHandler dbHandler = new SQLiteHandler(databasePath);
             dbHandler.OpenConnection();
+            Start(dbHandler);
+        }
+        private static void Start(SQLiteHandler dbHandler)
+        {
+            Console.WriteLine("Elige la fuente de datos a procesar: 0->Exit 1->CSV(CV) 2->XML(CLE) 3->JSON(EUS) 4->Delete BD data");
+            var caso = Console.ReadLine();
+            if (caso.Equals("0"))
+            {
+                dbHandler.CloseConnection();
+                return;
+            }
+            Task.Run(async () => await RunAsync(caso, dbHandler)).GetAwaiter().GetResult();
+        }
 
-            // Estas 4 lineas limpian las tablas de la BD para ir haciendo pruebas
-            dbHandler.DeleteData("DELETE FROM Monumento");
-            dbHandler.DeleteData("DELETE FROM Localidad");
-            dbHandler.DeleteData("DELETE FROM Provincia");
-            dbHandler.DeleteData("DELETE FROM sqlite_sequence");
-
-            await dbHandler.FilterAndInsertCSV(); 
-            await dbHandler.FilterAndInsertXML(); 
-            await dbHandler.FilterAndInsertJSON();
-
-            // Bloque de código de selección de todos los datos de la BD, para depuración
+        public static async Task RunAsync(string caso, SQLiteHandler dbHandler)
+        {
+            switch (caso) {
+                case "1": 
+                    await dbHandler.FilterAndInsertCSV(); break;
+                case "2":
+                    await dbHandler.FilterAndInsertXML(); break;
+                case "3":
+                    await dbHandler.FilterAndInsertJSON(); break;
+                case "4":
+                    dbHandler.DeleteData("DELETE FROM Monumento");
+                    dbHandler.DeleteData("DELETE FROM Localidad");
+                    dbHandler.DeleteData("DELETE FROM Provincia");
+                    dbHandler.DeleteData("DELETE FROM sqlite_sequence"); 
+                    break;
+                default:
+                    Console.WriteLine("Se ha introducido un valor no valido"); return;
+            }
+            // Bloque de código de selección de todos los datos de la BD
             string selectQuery = "SELECT * FROM Monumento";
             dbHandler.QueryData(selectQuery);
             selectQuery = "SELECT * FROM Localidad";
@@ -52,7 +69,7 @@ namespace IEIPracticas
             selectQuery = "SELECT * FROM Provincia";
             dbHandler.QueryData(selectQuery);
 
-            dbHandler.CloseConnection();
+            Start(dbHandler);
         }
 
     }
