@@ -20,7 +20,7 @@ namespace WrapperXML
             string xmlContent = File.ReadAllText(xmlFilePath);
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.LoadXml(xmlContent);
-            return JsonConvert.SerializeXmlNode(xmlDocument, Newtonsoft.Json.Formatting.Indented); ;
+            return JsonConvert.SerializeXmlNode(xmlDocument, Newtonsoft.Json.Formatting.Indented);
         }
     }
 }

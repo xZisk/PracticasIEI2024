@@ -340,19 +340,21 @@ namespace IEIPracticas.SQLite
 
             // Llamada a la API del wrapper para obtener el JSON
             HttpResponseMessage response = await httpClient.GetAsync(wrapperApiUrl);
+            response.EnsureSuccessStatusCode(); // Lanza una excepción si el código de estado no es exitoso
 
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"Error: No se pudo obtener el JSON del wrapper. Código de estado: {response.StatusCode}");
-                return;
-            }
             string xmldoc = await response.Content.ReadAsStringAsync();
-
+            // Deserializar el JSON recibido
             var jsonObject = JsonSerializer.Deserialize<JsonElement>(xmldoc);
+            var monumentosArray = jsonObject.GetProperty("monumentos").GetProperty("monumento").EnumerateArray();
+            var xmlMonumentos = new List<XMLMonumento>();
 
-            var monumentosArray = jsonObject.GetProperty("monumentos").GetProperty("monumento");
+            foreach (var monumentoElement in monumentosArray)
+            {
+                var xmlMonumento = JsonSerializer.Deserialize<XMLMonumento>(monumentoElement.GetRawText());
+                xmlMonumentos.Add(xmlMonumento);
+            }
 
-            List<XMLMonumento> xmlMonumentos = JsonSerializer.Deserialize<List<XMLMonumento>>(monumentosArray.ToString());
+            Console.WriteLine(xmldoc);
 
             foreach (XMLMonumento xmlMonumento in xmlMonumentos)
             {
