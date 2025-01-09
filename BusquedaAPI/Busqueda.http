@@ -1,0 +1,6 @@
+@Busqueda_HostAddress = http://localhost:5225
+
+GET {{Busqueda_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,110 @@
+.data-loader {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 500px;
+  margin: 50px auto;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  text-align: center;
+  max-height: 80vh; /* Set a maximum height for the container */
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.source-selection p {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.source-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.source-item {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  width: 100%;
+  max-width: 300px;
+  justify-content: flex-start;
+}
+
+.actions {
+  margin-top: 20px;
+}
+
+.button {
+  margin: 5px;
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button.cancel {
+  background-color: #d3d3d3;
+  color: #000;
+}
+
+.button.load {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.button.clear {
+  background-color: #d41876;
+  color: #fff;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+.results {
+  margin-top: 20px;
+}
+
+.results-container {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+  max-height: 50vh; /* Set a maximum height for the results container */
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.results-container p {
+  margin: 10px 0;
+}
+
+.results-container ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.results-container ul li {
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+.small-text {
+  font-size: 0.8rem; 
+  color: #555; 
+}
