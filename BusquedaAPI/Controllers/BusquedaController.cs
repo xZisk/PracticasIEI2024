@@ -16,7 +16,7 @@ namespace Busqueda.Controllers
             _httpClient = httpClient;
 
             // Ruta relativa al directorio donde est� el proyecto principal, fuera de la carpeta 'Monuments'
-            string projectRoot = Path.Combine(env.ContentRootPath, "..", "IEIPracticas", "SQLite");
+            string projectRoot = Path.Combine(env.ContentRootPath, "..", "Backend", "SQLite");
 
             // Crear la ruta completa a la base de datos
             _databasePath = Path.Combine(projectRoot, "dbproject.db");
