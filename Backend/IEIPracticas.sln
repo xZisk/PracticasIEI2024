@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IEIPracticas", "IEIPracticas.csproj", "{21265641-3DCA-4424-8264-D56CD90652FD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "IEIPracticas.csproj", "{21265641-3DCA-4424-8264-D56CD90652FD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrapperCSV", "..\WrapperCSV\WrapperCSV.csproj", "{B22BCDD1-52B2-423D-82F5-1C2228AEF583}"
 EndProject
@@ -11,9 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrapperXML", "..\WrapperXML
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrapperJSON", "..\WrapperJSON\WrapperJSON.csproj", "{2A956750-CFF4-45F7-945C-1DD9D8F37945}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusquedaAPI", "..\BusquedaAPI\Busqueda.csproj", "{ABFB647F-9907-4FEB-8E06-F2D44F890F66}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusquedaAPI", "..\BusquedaAPI\BusquedaAPI.csproj", "{ABFB647F-9907-4FEB-8E06-F2D44F890F66}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CargaAPI", "..\CargaAPI\Carga.csproj", "{C492199E-78B7-4B3A-B675-46DB4A75C26F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CargaAPI", "..\CargaAPI\CargaAPI.csproj", "{C492199E-78B7-4B3A-B675-46DB4A75C26F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
