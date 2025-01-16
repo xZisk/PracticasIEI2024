@@ -1,21 +1,88 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SearchForm.css";
-
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet-draw/dist/leaflet.draw.css";
+import "leaflet-draw";
 
 const SearchForm = ({ handleCancel }) => {
+  const [map, setMap] = useState(null);
+  const [drawnItems, setDrawnItems] = useState(new L.FeatureGroup());
   const [results, setResults] = useState({
     monumentos: [],
     localidades: [],
     provincias: [],
   });
-
   const [filters, setFilters] = useState({
     localidad: "",
     codPostal: "",
     provincia: "",
     tipo: "all",
   });
+
+  // Inicialización del mapa con Leaflet
+  useEffect(() => {
+    const initializedMap = L.map("map").setView([40.416775, -3.703790], 6); // Madrid
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(initializedMap);
+
+    const items = new L.FeatureGroup();
+    initializedMap.addLayer(items);
+    setDrawnItems(items);
+
+    const drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: items,
+      },
+      draw: {
+        polyline: true,
+        polygon: true,
+        rectangle: true,
+        circle: true,
+        marker: true,
+      },
+    });
+
+    initializedMap.addControl(drawControl);
+
+    initializedMap.on(L.Draw.Event.CREATED, (event) => {
+      const layer = event.layer;
+      items.addLayer(layer);
+
+      console.log("Dibujo creado:", layer.toGeoJSON());
+    });
+
+    initializedMap.addControl(drawControl);
+    const customIcon = L.icon({
+      iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png", // Puedes cambiar esta URL a una imagen personalizada
+      iconSize: [22, 32], 
+      iconAnchor: [16, 22], 
+      popupAnchor: [0, -22], 
+    });
+
+    const puntos = [
+      { lat: 40.416775, lng: -3.703790, title: "Punto 1" }, 
+      { lat: 41.38879, lng: 2.15899, title: "Punto 2" },  
+      { lat: 42.1401, lng: -0.4082, title: "Punto 3" }  
+    ];
+
+    puntos.forEach((punto) => {
+      const marker = L.marker([punto.lat, punto.lng], { icon: customIcon }).addTo(initializedMap);
+      marker.bindPopup(`<b>${punto.title}</b><br/>Lat: ${punto.lat}<br/>Lng: ${punto.lng}`);
+    });
+
+    setMap(initializedMap);
+
+    const placeholder = document.querySelector(".map-placeholder > p");
+    if (placeholder) placeholder.remove();
+
+    return () => {
+      initializedMap.remove();
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -59,23 +126,20 @@ const SearchForm = ({ handleCancel }) => {
   };
 
   const getProvinciaNombre = (idLocalidad) => {
-    // Buscar la localidad en la lista de localidades
     const localidad = results.localidades.find(
       (loc) => loc.idLocalidad === idLocalidad
     );
-  
+
     if (!localidad) {
-      return "Desconocido"; // Si no se encuentra la localidad
+      return "Desconocido";
     }
-  
-    // Buscar la provincia en la lista de provincias usando el idProvincia de la localidad
+
     const provincia = results.provincias.find(
       (prov) => prov.idProvincia === localidad.idProvincia
     );
-  
-    return provincia ? provincia.nombre : "Desconocido"; // Retornar el nombre de la provincia si se encuentra
+
+    return provincia ? provincia.nombre : "Desconocido";
   };
-  
 
   return (
     <div className="search-form-container">
@@ -138,7 +202,7 @@ const SearchForm = ({ handleCancel }) => {
         <div className="map-section">
           <h2>Mapa</h2>
           <div className="map-placeholder">
-            <p>Aquí irá el mapa interactivo</p>
+            <div id="map" style={{ height: "400px", width: "100%" }}></div>
           </div>
         </div>
       </div>
