@@ -5,6 +5,7 @@ using IEIPracticas.APIs_Scrapper;
 using IEIPracticas.Models;
 using MyProject.Models;
 using System.Collections.Generic;
+using System.Net;
 
 namespace IEIPracticas
 {
@@ -167,7 +168,7 @@ namespace IEIPracticas
                 Tipo = MapTipo(xm.tipoMonumento, xm.nombre),  
                 Latitud = latitud,
                 Longitud = longitud,
-                Descripcion = Regex.Replace(xm.Descripcion?.CDataSection.Replace("'","''"),"<.*?>", string.Empty),
+                Descripcion = WebUtility.HtmlDecode(Regex.Replace(xm.Descripcion?.CDataSection.Replace("'","''"),"<.*?>", string.Empty)),
             };
 
             return monumento;
