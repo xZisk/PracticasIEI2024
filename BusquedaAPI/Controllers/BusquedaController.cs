@@ -1,11 +1,17 @@
 using IEIPracticas.Models;
 using IEIPracticas.SQLite;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cors;
+using Swashbuckle.AspNetCore.Annotations;
+using MyProject.Models;
+
 
 namespace Busqueda.Controllers
 {
     [ApiController]
     [Route("api/busqueda")]
+    [EnableCors("AllowLocalhost3000")]
+    [SwaggerSchema("BusquedaAPI")]
     public class BusquedaController : ControllerBase
     {
         private readonly HttpClient _httpClient;
@@ -23,21 +29,44 @@ namespace Busqueda.Controllers
 
             _databasePath = Path.GetFullPath(_databasePath);
         }
-        [HttpGet]
+
+        /// <summary>
+        /// Obtiene todos los datos de la base de datos.
+        /// </summary>
+        /// <returns>Objeto con listas de Monumentos, Localidades y Provincias.</returns>
+        [HttpGet("getAllDatabase")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllDatabase()
         {
             try
             {
                 SQLiteHandler dbHandler = new SQLiteHandler(_databasePath);
                 dbHandler.OpenConnection();
+
+                // Consulta para obtener los monumentos
                 string selectQuery = "SELECT * FROM Monumento";
-                response = response + dbHandler.GetStringData(selectQuery);
+                var monumentosData = dbHandler.GetData<Monumento>(selectQuery);
+
+                // Consulta para obtener las localidades
                 selectQuery = "SELECT * FROM Localidad";
-                response = response + dbHandler.GetStringData(selectQuery);
+                var localidadesData = dbHandler.GetData<Localidad>(selectQuery);
+
+                // Consulta para obtener las provincias
                 selectQuery = "SELECT * FROM Provincia";
-                response = response + dbHandler.GetStringData(selectQuery);
+                var provinciasData = dbHandler.GetData<Provincia>(selectQuery);
+
                 dbHandler.CloseConnection();
-                return Ok(response);
+
+                // Estructurar los datos en un objeto que contenga las tres listas
+                var response = new
+                {
+                    monumentos = monumentosData,
+                    localidades = localidadesData,
+                    provincias = provinciasData
+                };
+
+                return Ok(response);  // Devolver la respuesta estructurada en formato JSON
             }
             catch (Exception ex)
             {
@@ -45,174 +74,10 @@ namespace Busqueda.Controllers
             }
         }
 
-        //////////////////creo q esto no hará falta si al final no usamos se borra y ya////////////////////////////
-        /*
-        //Filtrar Monumento por localidad
-        [HttpGet("monumentoPorLocalidad")]
-        public IActionResult GetMonumentsByLocalidad([FromQuery] string localidad)
-        {
-            if (string.IsNullOrWhiteSpace(localidad))
-            {
-                return BadRequest("El parámetro 'localidad' no puede estar vacío.");
-            }
-
-            try
-            {
-                SQLiteHandler dbHandler = new SQLiteHandler(_databasePath);
-                dbHandler.OpenConnection();
-
-                // Consulta para obtener los monumentos asociados a la localidad
-                 string query = @"
-                    SELECT m.*
-                    FROM Monumento m
-                    INNER JOIN Localidad l ON m.idLocalidad = l.idLocalidad
-                    WHERE l.nombre LIKE @Localidad";
-
-                // Ejecutar la consulta con el parámetro localidad
-                var parameters = new Dictionary<string, object>
-                {
-                    { "@Localidad", $"%{localidad}%" }
-                };
-                var resultados = dbHandler.GetStringData(query, parameters);
-                dbHandler.CloseConnection();
-
-                string response = $"Resultados de la búsqueda para la localidad '{localidad}':\n";
-                response += resultados;
-
-                return Ok(response);
-
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al buscar monumentos: {ex.Message}");
-            }
-        }
-
-        //Filtrar monumento por código postal
-        [HttpGet("monumentoPorCodigoPostal")]
-        public IActionResult GetMonumentsByCodigoPostal([FromQuery] string codigoPostal)
-        {
-            if (string.IsNullOrWhiteSpace(codigoPostal))
-            {
-                return BadRequest("El parámetro 'codigoPostal' no puede estar vacío.");
-            }
-
-            try
-            {
-                SQLiteHandler dbHandler = new SQLiteHandler(_databasePath);
-                dbHandler.OpenConnection();
-
-                // Consulta para obtener los monumentos asociados al código postal
-                string query = @"
-                    SELECT *
-                    FROM Monumento
-                    WHERE codigo_postal LIKE @CodigoPostal";
-
-                // Ejecutar la consulta con el parámetro código postal
-                var parameters = new Dictionary<string, object>
-                {
-                    { "@CodigoPostal", $"%{codigoPostal}%" }
-                };
-                var resultados = dbHandler.GetStringData(query, parameters);
-
-                dbHandler.CloseConnection();
-
-                // Construir la respuesta en texto plano
-                string response = $"Resultados de la búsqueda para el código postal '{codigoPostal}':\n";
-                response += resultados;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al buscar monumentos: {ex.Message}");
-            }
-        }
-
-        //Filtrar por Provincia
-        [HttpGet("monumentoPorProvincia")]
-        public IActionResult GetMonumentsByProvincia([FromQuery] string provincia)
-        {
-            if (string.IsNullOrWhiteSpace(provincia))
-            {
-                return BadRequest("El parámetro 'provincia' no puede estar vacío.");
-            }
-
-            try
-            {
-                SQLiteHandler dbHandler = new SQLiteHandler(_databasePath);
-                dbHandler.OpenConnection();
-
-                // Consulta para obtener los monumentos asociados a la provincia
-                string query = @"
-                    SELECT m.*
-                    FROM Monumento m
-                    INNER JOIN Localidad l ON m.idLocalidad = l.idLocalidad
-                    INNER JOIN Provincia p ON l.idProvincia = p.idProvincia
-                    WHERE p.nombre LIKE @Provincia";
-
-                // Ejecutar la consulta con el parámetro provincia
-                var parameters = new Dictionary<string, object>
-                {
-                    { "@Provincia", $"%{provincia}%" }
-                };
-                var resultados = dbHandler.GetStringData(query, parameters);
-
-                dbHandler.CloseConnection();
-
-                // Construir la respuesta en texto plano
-                string response = $"Resultados de la búsqueda para la provincia '{provincia}':\n";
-                response += resultados;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al buscar monumentos: {ex.Message}");
-            }
-        }
-
-        //Filtrar por tipo de monumento
-        [HttpGet("monumentoPorTipo")]
-        public IActionResult GetMonumentsByTipo([FromQuery] string tipo)
-        {
-            if (string.IsNullOrWhiteSpace(tipo))
-            {
-                return BadRequest("El parámetro 'tipo' no puede estar vacío.");
-            }
-
-            try
-            {
-                SQLiteHandler dbHandler = new SQLiteHandler(_databasePath);
-                dbHandler.OpenConnection();
-
-                // Consulta para obtener los monumentos asociados al tipo
-                string query = @"
-                    SELECT *
-                    FROM Monumento
-                    WHERE tipo LIKE @Tipo";
-
-                // Ejecutar la consulta con el parámetro tipo
-                var parameters = new Dictionary<string, object>
-                {
-                    { "@Tipo", $"%{tipo}%" }
-                };
-                var resultados = dbHandler.GetStringData(query, parameters);
-
-                dbHandler.CloseConnection();
-
-                // Construir la respuesta en texto plano
-                string response = $"Resultados de la búsqueda para el tipo '{tipo}':\n";
-                response += resultados;
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al buscar monumentos: {ex.Message}");
-            }
-        }*/
-
+        /// <summary>
+        /// Filtra los monumentos dependiendo de los parametros introducidos.
+        /// </summary>
+        /// <returns>Objeto con listas de Monumentos</returns>
         [HttpGet("buscarMonumentos")]
         public IActionResult BuscarMonumentos(
             [FromQuery] string? localidad, 

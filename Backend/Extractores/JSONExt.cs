@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace IEIPracticas.Mappers
@@ -173,7 +174,7 @@ namespace IEIPracticas.Mappers
                 Localidad = jsonMonumento.municipality,
                 Provincia = jsonMonumento.territory,
                 Tipo = MapTipo(jsonMonumento.documentName),
-                Descripcion = jsonMonumento.documentDescription,
+                Descripcion = WebUtility.HtmlDecode(jsonMonumento.documentDescription),
                 Direccion = jsonMonumento.address + ", " + jsonMonumento.postalCode + " " + jsonMonumento.municipality,
                 CodigoPostal = codigoPostal,
                 Longitud = longitud,

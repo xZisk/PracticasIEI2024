@@ -13,6 +13,7 @@ using OpenQA.Selenium;
 using IEIPracticas.APIs_Scrapper;
 using System.Data.Common;
 using SimMetrics.Net.Metric;
+using System.Text;
 
 namespace IEIPracticas.SQLite
 {
@@ -93,6 +94,7 @@ namespace IEIPracticas.SQLite
                 Console.WriteLine($"Error al insertar datos: {ex.Message}");
             }
         }
+
 
         // Método para eliminar datos
         public int DeleteData(string deleteQuery)
@@ -469,6 +471,105 @@ namespace IEIPracticas.SQLite
                 return response;
             }
         }
+
+        public List<T> GetData<T>(string query)
+        {
+            var resultList = new List<T>();
+            using (var command = new SqliteCommand(query, connection))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var result = Activator.CreateInstance<T>();
+                        
+                        // Recorrer todas las columnas en el lector de datos
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            var columnName = reader.GetName(i);
+                            var propertyName = char.ToUpper(columnName[0]) + columnName.Substring(1);
+                            
+                            // Buscar la propiedad que coincida, usando la capitalización correcta
+                            var property = typeof(T).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+
+                            if (property != null && reader[columnName] != DBNull.Value)
+                            {
+                                try
+                                {
+                                    var value = reader.GetValue(i);
+                                    if (value != null)
+                                    {
+                                        if (property.PropertyType == typeof(string) && columnName.Equals("CodigoPostal", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            property.SetValue(result, value.ToString());
+                                        }
+                                        else if (property.PropertyType.IsEnum && columnName.Equals("tipo", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            // Obtener la descripción de la enumeración
+                                            var enumValue = Enum.ToObject(property.PropertyType, Convert.ToInt32(value));
+                                            var description = GetEnumDescription((Enum) enumValue);
+                                            property.SetValue(result, description);
+                                        }
+                                        else
+                                        {
+                                            // Caso general
+                                            property.SetValue(result, Convert.ChangeType(value, property.PropertyType));
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Error setting value for {propertyName}: {ex.Message}");
+                                }
+                            }
+                        }
+                        resultList.Add(result);
+                    }
+                }
+            }
+            return resultList;
+        }
+
+
+        //Cambiar nombre
+        public string GetStringData(string query, Dictionary<string, object>? parameters = null)
+        {
+            try
+            {
+                using (var command = new SqliteCommand(query, connection))
+                {
+                    // Agregar parámetros a la consulta si existen
+                    if (parameters != null)
+                    {
+                        foreach (var param in parameters)
+                        {
+                            command.Parameters.AddWithValue(param.Key, param.Value);
+                        }
+                    }
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var result = new StringBuilder();
+
+                        while (reader.Read())
+                        {
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                result.Append($"{reader.GetName(i)}: {reader.GetValue(i)}, ");
+                            }
+                            result.AppendLine(); // Salto de línea después de cada registro
+                        }
+
+                        return result.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al ejecutar la consulta: {ex.Message}", ex);
+            }
+        }
+
         public List<string> RepairedRecords { get; private set; } = new List<string>();
         public List<string> RejectedRecords { get; private set; } = new List<string>();
         public int InsertedRecords { get; private set;} = 0;
