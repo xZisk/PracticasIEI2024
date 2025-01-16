@@ -59,7 +59,6 @@ const SearchForm = ({ handleCancel }) => {
   };
 
   const getProvinciaNombre = (idLocalidad) => {
-    // Buscar la localidad en la lista de localidades
     const localidad = results.localidades.find(
       (loc) => loc.idLocalidad === idLocalidad
     );
@@ -73,9 +72,30 @@ const SearchForm = ({ handleCancel }) => {
       (prov) => prov.idProvincia === localidad.idProvincia
     );
   
-    return provincia ? provincia.nombre : "Desconocido"; // Retornar el nombre de la provincia si se encuentra
+    return provincia ? provincia.nombre : "Desconocido";
   };
-  
+
+  const TipoMapping = {
+    0: "Yacimiento arqueologico",
+    1: "Iglesia-Ermita",
+    2: "Monasterio-Convento",
+    3: "Castillo-Fortaleza-Torre",
+    4: "Edificio singular",
+    5: "Puente",
+    6: "Otros",
+  };
+
+  function getDescripcion(tipo) {
+  return TipoMapping[tipo] || "Descripción no encontrada";
+  }
+
+  function updatePostalCode(cod){
+    if (cod < 10000) {
+      return '' + 0 + cod;
+    } else {
+      return cod;
+    }
+  }
 
   return (
     <div className="search-form-container">
@@ -163,10 +183,10 @@ const SearchForm = ({ handleCancel }) => {
               {results.monumentos.map((monumento, index) => (
                 <tr key={index}>
                   <td>{monumento.nombre}</td>
-                  <td>{monumento.tipo}</td>
+                  <td>{getDescripcion(monumento.tipo)}</td>
                   <td>{monumento.direccion}</td>
                   <td>{getLocalidadNombre(monumento.idLocalidad)}</td>
-                  <td>{monumento.codigoPostal}</td>
+                  <td>{updatePostalCode(monumento.codigoPostal)}</td>
                   <td>{getProvinciaNombre(monumento.idLocalidad)}</td>
                   <td>{monumento.descripcion}</td>
                 </tr>

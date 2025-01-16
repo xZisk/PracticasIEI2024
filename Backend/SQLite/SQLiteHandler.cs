@@ -492,28 +492,28 @@ namespace IEIPracticas.SQLite
                             // Buscar la propiedad que coincida, usando la capitalización correcta
                             var property = typeof(T).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
 
-                            if (property != null && reader[columnName] != DBNull.Value)
+                            Console.WriteLine($"Propiedad: {columnName}");
+                            if ((property != null && reader[columnName] != DBNull.Value)  || columnName == "codigo_postal")
                             {
                                 try
                                 {
                                     var value = reader.GetValue(i);
+                                    Console.WriteLine($"Valor original: {value}");
+
                                     if (value != null)
                                     {
-                                        if (property.PropertyType == typeof(string) && columnName.Equals("CodigoPostal", StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            property.SetValue(result, value.ToString());
-                                        }
-                                        else if (property.PropertyType.IsEnum && columnName.Equals("tipo", StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            // Obtener la descripción de la enumeración
-                                            var enumValue = Enum.ToObject(property.PropertyType, Convert.ToInt32(value));
-                                            var description = GetEnumDescription((Enum) enumValue);
-                                            property.SetValue(result, description);
-                                        }
-                                        else
-                                        {
+                                        if (propertyName.Equals("Codigo_postal")){
+                                            if (result != null)
+                                            {
+                                                PropertyInfo propertyForCodigoPostal = result.GetType().GetProperty("CodigoPostal");
+                                                if (propertyForCodigoPostal != null)
+                                                {propertyForCodigoPostal.SetValue(result, Convert.ToInt32(value));}
+                                            }
+                                        }else if (propertyName.Equals("Tipo")){
+                                            property.SetValue(result, GetEnumFromDescription(value.ToString()));
+                                        } else {
                                             // Caso general
-                                            property.SetValue(result, Convert.ChangeType(value, property.PropertyType));
+                                        property.SetValue(result, Convert.ChangeType(value, property.PropertyType));
                                         }
                                     }
                                 }
@@ -529,6 +529,23 @@ namespace IEIPracticas.SQLite
             }
             return resultList;
         }
+
+        public static Tipo GetEnumFromDescription(string description)
+        {
+            foreach (var field in typeof(Tipo).GetFields())
+            {
+                // Obtener el atributo DescriptionAttribute
+                var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+                
+                if (attribute != null && attribute.Description.Equals(description, StringComparison.OrdinalIgnoreCase))
+                {
+                    return (Tipo)field.GetValue(null);
+                }
+            }
+            
+            throw new ArgumentException($"No se encontró ningún valor del enumerado Tipo con la descripción '{description}'.");
+        }
+
 
 
         //Cambiar nombre
