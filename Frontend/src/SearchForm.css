@@ -1,103 +1,108 @@
 /* Estilo General */
 .search-form-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    gap: 20px;
-    background-color: #f5f5f5;
-  }
-  
-  /* Formulario y Mapa */
-  .form-section,
-  .map-section {
-    flex: 1;
-    border: 1px solid #ccc;
-    padding: 20px;
-    border-radius: 8px;
-    background-color: #ffffff;
-  }
-  
-  .form-section {
-    margin-bottom: 20px;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-  
-  .form-group input,
-  .form-group select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .form-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-  }
-  
-  .button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .button.search {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .button.cancel {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .map-placeholder {
-    height: 300px;
-    border: 1px dashed #ccc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 8px;
-    color: #666;
-    font-style: italic;
-  }
-  
-  /* Tabla de Resultados */
-  .results-section {
-    flex: 1;
-    border: 1px solid #ccc;
-    padding: 20px;
-    border-radius: 8px;
-    background-color: #ffffff;
-  }
-  
-  .results-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .results-table th,
-  .results-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
-  
-  .results-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  gap: 20px;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+/* Contenedor para el Formulario y el Mapa */
+.top-section {
+  display: flex;
+  gap: 20px;
+  flex: 0 0 auto; /* Asegura que la altura no sea elástica */
+}
+
+/* Formulario y Mapa */
+.form-section,
+.map-section {
+  flex: 1; /* Ambos ocupan el mismo espacio */
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+/* Resultados */
+.results-section {
+  flex: 1; /* Ocupará todo el espacio restante */
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+/* Estilo del Formulario */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.button.search {
+  background-color: #4caf50;
+  color: white;
+}
+
+.button.cancel {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Estilo del Mapa */
+.map-placeholder {
+  height: 300px;
+  border: 1px dashed #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Tabla de Resultados */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.results-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}

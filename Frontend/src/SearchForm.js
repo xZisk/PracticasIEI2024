@@ -232,7 +232,7 @@ const SearchForm = ({ handleCancel }) => {
       {/* Sección inferior: Resultados */}
       <div className="results-section">
         <h2>Resultados</h2>
-        {results.monumentos.length > 0 ? (
+        {results.monumentos.length >= 0 ? (
           <table className="results-table">
             <thead>
               <tr>
