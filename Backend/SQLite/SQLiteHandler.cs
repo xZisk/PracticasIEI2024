@@ -35,6 +35,7 @@ namespace IEIPracticas.SQLite
             {
                 connection = new SqliteConnection(connectionString);
                 connection.Open();
+                connection.AddRemoveAccentsFunction();
                 Console.WriteLine("Conexión abierta.");
             }
             catch (Exception ex)
