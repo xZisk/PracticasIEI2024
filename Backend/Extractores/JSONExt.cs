@@ -179,6 +179,7 @@ namespace IEIPracticas.Mappers
                 CodigoPostal = codigoPostal,
                 Longitud = longitud,
                 Latitud = latitud,
+                Fuente = "JSON",
             };
             return monumento;
         }

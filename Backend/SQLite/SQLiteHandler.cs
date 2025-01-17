@@ -324,6 +324,9 @@ namespace IEIPracticas.SQLite
                 if (monumento == null)
                 {
                     continue;
+                } else if (FilterAndRejectInvalidProvincias(monumento))
+                {
+                    continue;
                 }
                 InsertMonumento(monumento);
                 InsertedRecords = InsertedRecords + 1;
@@ -370,6 +373,9 @@ namespace IEIPracticas.SQLite
                 var monumento = await XMLExt.XMLMonumentoToMonumento(xmlMonumento);
 
                 if (monumento == null)
+                {
+                    continue;
+                } else if (FilterAndRejectInvalidProvincias(monumento))
                 {
                     continue;
                 }
@@ -519,7 +525,43 @@ namespace IEIPracticas.SQLite
             
             throw new ArgumentException($"No se encontró ningún valor del enumerado Tipo con la descripción '{description}'.");
         }
-
+        private static readonly Dictionary<string, HashSet<string>> validProvincias = new Dictionary<string, HashSet<string>>
+        {
+            { "CSV", new HashSet<string> { "castellon", "valencia", "alicante" } },
+            { "JSON", new HashSet<string> { "bizkaia", "alava", "gipuzkoa" } },
+            { "XML", new HashSet<string> { "leon", "palencia", "burgos", "soria", "zamora", "valladolid", "segovia", "salamanca", "avila" } }
+        };
+        public bool FilterAndRejectInvalidProvincias(Monumento monumento)
+        {
+            var lev = new Levenstein();
+            double umbral = 0.85;
+            foreach (var nombre in validProvincias[monumento.Fuente])
+            {
+                double similitud = lev.GetSimilarity(nombre, RemoveAccents(monumento.Provincia.ToLower()));
+                if (!(similitud == 1)) 
+                if (similitud >= umbral)
+                {
+                    Console.WriteLine($"'{monumento.Provincia}' es similar a '{nombre}' con una similitud del {similitud * 100:F2}%. Se asume error tipográfico y se rechaza.");
+                    monumento.Provincia = nombre.First().ToString().ToUpper() + nombre.Substring(1);
+                }
+                if (!validProvincias[monumento.Fuente].Contains(RemoveAccents(nombre.ToLower())))
+                {
+                    Console.WriteLine($"Error: El monumento '{monumento.Nombre}' no tiene una provincia de su CA, rechazado");
+                    RejectedRecords.Add($"Nombre: {monumento.Nombre}, Error: No está ligado a una provincia de su Comunidad Autónoma");
+                    return true;
+                }   
+            }
+            return false;
+        }
+        
+        public string RemoveAccents(string input)
+        {
+            if (input == null) return null;
+            return string.Concat(
+                input.Normalize(NormalizationForm.FormD)
+                    .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            ).Normalize(NormalizationForm.FormC);
+        }
 
 
         public List<string> RepairedRecords { get; private set; } = new List<string>();
