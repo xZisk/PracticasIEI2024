@@ -14,6 +14,7 @@ using IEIPracticas.APIs_Scrapper;
 using System.Data.Common;
 using SimMetrics.Net.Metric;
 using System.Text;
+using System.Collections;
 
 namespace IEIPracticas.SQLite
 {
@@ -258,6 +259,11 @@ namespace IEIPracticas.SQLite
             // Configura Chrome para suprimir mensajes no críticos
             options.AddArgument("--log-level=3");
             options.AddArgument("--disable-logging");
+            // Escondiendo el scrapper
+            options.AddArgument("--headless");
+            options.AddArgument("--disable-gpu"); 
+            options.AddArgument("--no-sandbox"); 
+            options.AddArgument("--disable-dev-shm-usage"); 
             IWebDriver driver = new ChromeDriver(options);
             IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
             List<CSVMonumento> csvMonumentos = JsonSerializer.Deserialize<List<CSVMonumento>>(csvdoc);
@@ -282,6 +288,9 @@ namespace IEIPracticas.SQLite
                 csvMonumento.UTMNORTE = latlon.Longitude;
                 var monumento = await CSVExt.CSVMonumentoToMonumento(csvMonumento);
                 if (monumento == null)
+                {
+                    continue;
+                } else if (FilterAndRejectInvalidProvincias(monumento))
                 {
                     continue;
                 }
@@ -535,25 +544,31 @@ namespace IEIPracticas.SQLite
         {
             var lev = new Levenstein();
             double umbral = 0.85;
+            string normalizedProvincia = RemoveAccents(monumento.Provincia.ToLower());
             foreach (var nombre in validProvincias[monumento.Fuente])
             {
-                double similitud = lev.GetSimilarity(nombre, RemoveAccents(monumento.Provincia.ToLower()));
-                if (!(similitud == 1)) 
+                double similitud = lev.GetSimilarity(nombre, normalizedProvincia);
+                Console.WriteLine($"Comparing with valid provincia '{nombre}' - Similarity: {similitud}");
+
+                if (similitud == 1)
+                {
+                    // Exact match found, no need to check further
+                    Console.WriteLine($"Exact match found for '{monumento.Provincia}'");
+                    return false;
+                }
                 if (similitud >= umbral)
                 {
-                    Console.WriteLine($"'{monumento.Provincia}' es similar a '{nombre}' con una similitud del {similitud * 100:F2}%. Se asume error tipográfico y se rechaza.");
+                    Console.WriteLine($"'{monumento.Provincia}' es similar a '{nombre}' con una similitud del {similitud * 100:F2}%. Se asume error tipográfico y se corrige.");
                     monumento.Provincia = nombre.First().ToString().ToUpper() + nombre.Substring(1);
+                    return false;
                 }
-                if (!validProvincias[monumento.Fuente].Contains(RemoveAccents(nombre.ToLower())))
-                {
-                    Console.WriteLine($"Error: El monumento '{monumento.Nombre}' no tiene una provincia de su CA, rechazado");
-                    RejectedRecords.Add($"Nombre: {monumento.Nombre}, Error: No está ligado a una provincia de su Comunidad Autónoma");
-                    return true;
-                }   
             }
-            return false;
+            // If no valid province is found after corrections
+            Console.WriteLine($"Error: El monumento '{monumento.Nombre}' no tiene una provincia de su CA, rechazado");
+            RejectedRecords.Add($"Nombre: {monumento.Nombre}, Error: No está ligado a una provincia de su Comunidad Autónoma");
+            return true;
         }
-        
+
         public string RemoveAccents(string input)
         {
             if (input == null) return null;

@@ -13,7 +13,6 @@ namespace IEIPracticas.APIs_Scrapper
                 Thread.Sleep(2000);
                 driver.FindElement(By.CssSelector(".fc-cta-do-not-consent > .fc-button-label")).Click();
             }
-            
             driver.FindElement(By.Id("UTMeBox1")).Clear();
             driver.FindElement(By.Id("UTMeBox1")).SendKeys(UTMNorte);
             driver.FindElement(By.Id("UTMnBox1")).Clear();
