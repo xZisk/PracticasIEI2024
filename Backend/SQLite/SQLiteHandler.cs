@@ -544,25 +544,51 @@ namespace IEIPracticas.SQLite
         {
             var lev = new Levenstein();
             double umbral = 0.85;
-            string normalizedProvincia = RemoveAccents(monumento.Provincia.ToLower());
-            foreach (var nombre in validProvincias[monumento.Fuente])
-            {
-                double similitud = lev.GetSimilarity(nombre, normalizedProvincia);
-                Console.WriteLine($"Comparing with valid provincia '{nombre}' - Similarity: {similitud}");
+            string[] provincias = monumento.Provincia.Split('/');
+            bool isValid = false;
+            double highestSimilarity = 0;
+            string mostSimilarProvincia = null;
 
-                if (similitud == 1)
+            if (!validProvincias.ContainsKey(monumento.Fuente))
+            {
+                Console.WriteLine($"Error: El monumento '{monumento.Nombre}' tiene una fuente no válida, rechazado");
+                RejectedRecords.Add($"Nombre: {monumento.Nombre}, Error: Fuente no válida");
+                return true;
+            }
+
+            Console.WriteLine($"Checking monumento '{monumento.Nombre}' with provincia '{monumento.Provincia}' for fuente '{monumento.Fuente}'");
+
+            foreach (var provincia in provincias)
+            {
+                string normalizedProvincia = RemoveAccents(provincia.ToLower());
+                foreach (var nombre in validProvincias[monumento.Fuente])
                 {
-                    // Exact match found, no need to check further
-                    Console.WriteLine($"Exact match found for '{monumento.Provincia}'");
-                    return false;
-                }
-                if (similitud >= umbral)
-                {
-                    Console.WriteLine($"'{monumento.Provincia}' es similar a '{nombre}' con una similitud del {similitud * 100:F2}%. Se asume error tipográfico y se corrige.");
-                    monumento.Provincia = nombre.First().ToString().ToUpper() + nombre.Substring(1);
-                    return false;
+                    double similitud = lev.GetSimilarity(nombre, normalizedProvincia);
+                    Console.WriteLine($"Comparing with valid provincia '{nombre}' - Similarity: {similitud}");
+
+                    if (similitud == 1)
+                    {
+                        // Exact match found, no need to check further
+                        Console.WriteLine($"Exact match found for '{provincia}'");
+                        monumento.Provincia = nombre.First().ToString().ToUpper() + nombre.Substring(1);
+                        return false;
+                    }
+                    if (similitud >= umbral && similitud > highestSimilarity)
+                    {
+                        highestSimilarity = similitud;
+                        mostSimilarProvincia = nombre;
+                        isValid = true;
+                    }
                 }
             }
+
+            if (isValid && mostSimilarProvincia != null)
+            {
+                Console.WriteLine($"'{monumento.Provincia}' es más similar a '{mostSimilarProvincia}' con una similitud del {highestSimilarity * 100:F2}%. Se asume error tipográfico y se corrige.");
+                monumento.Provincia = mostSimilarProvincia.First().ToString().ToUpper() + mostSimilarProvincia.Substring(1);
+                return false;
+            }
+
             // If no valid province is found after corrections
             Console.WriteLine($"Error: El monumento '{monumento.Nombre}' no tiene una provincia de su CA, rechazado");
             RejectedRecords.Add($"Nombre: {monumento.Nombre}, Error: No está ligado a una provincia de su Comunidad Autónoma");
