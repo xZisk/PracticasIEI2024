@@ -446,31 +446,6 @@ namespace IEIPracticas.SQLite
             }
             return deleteResults;
         }
-        public string GetStringData(string selectQuery)
-        {
-            string response = "";
-            try
-            {
-                using (var command = new SqliteCommand(selectQuery, connection))
-                using (var reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        for (int i = 0; i < reader.FieldCount; i++)
-                        {
-                            response = response + ($"{reader.GetName(i)}: {reader.GetValue(i)} ");
-                        }
-                        response = response + "\n";
-                    }
-                }
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response = response + ($"Error al consultar datos: {ex.Message}");
-                return response;
-            }
-        }
 
         public List<T> GetData<T>(string query)
         {
@@ -544,89 +519,6 @@ namespace IEIPracticas.SQLite
             throw new ArgumentException($"No se encontró ningún valor del enumerado Tipo con la descripción '{description}'.");
         }
 
-
-
-        //Cambiar nombre
-        public List<T> GetData<T>(string query, Dictionary<string, object>? parameters = null)
-        {
-            var resultList = new List<T>();
-
-            try
-            {
-                using (var command = new SqliteCommand(query, connection))
-                {
-                    // Agregar parámetros a la consulta si existen
-                    if (parameters != null)
-                    {
-                        foreach (var param in parameters)
-                        {
-                            command.Parameters.AddWithValue(param.Key, param.Value);
-                        }
-                    }
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            var result = Activator.CreateInstance<T>();
-
-                            // Recorrer todas las columnas en el lector de datos
-                            for (int i = 0; i < reader.FieldCount; i++)
-                            {
-                                var columnName = reader.GetName(i);
-                                var propertyName = char.ToUpper(columnName[0]) + columnName.Substring(1);
-
-                                // Buscar la propiedad que coincida, usando la capitalización correcta
-                                var property = typeof(T).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
-
-                                if ((property != null && reader[columnName] != DBNull.Value) || columnName == "codigo_postal")
-                                {
-                                    try
-                                    {
-                                        var value = reader.GetValue(i);
-
-                                        if (value != null)
-                                        {
-                                            if (propertyName.Equals("Codigo_postal"))
-                                            {
-                                                if (result != null)
-                                                {
-                                                    PropertyInfo propertyForCodigoPostal = result.GetType().GetProperty("CodigoPostal");
-                                                    if (propertyForCodigoPostal != null)
-                                                    {
-                                                        propertyForCodigoPostal.SetValue(result, Convert.ToInt32(value));
-                                                    }
-                                                }
-                                            }
-                                            else if (propertyName.Equals("Tipo"))
-                                            {
-                                                property.SetValue(result, GetEnumFromDescription(value.ToString()));
-                                            }
-                                            else
-                                            {
-                                                // Caso general
-                                                property.SetValue(result, Convert.ChangeType(value, property.PropertyType));
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine($"Error setting value for {propertyName}: {ex.Message}");
-                                    }
-                                }
-                            }
-                            resultList.Add(result);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error al ejecutar la consulta: {ex.Message}", ex);
-            }
-
-            return resultList;
-        }
 
 
         public List<string> RepairedRecords { get; private set; } = new List<string>();

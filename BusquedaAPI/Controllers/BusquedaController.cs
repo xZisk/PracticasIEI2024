@@ -153,10 +153,10 @@ namespace Busqueda.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult BuscarMonumentos(
             [FromQuery] string? localidad, 
-            [FromQuery] string? codigoPostal, 
+            [FromQuery] string? codPostal, 
             [FromQuery] string? provincia, 
             [FromQuery] string? tipo)
-        {
+        {   
             try
             {
                 SQLiteHandler dbHandler = new SQLiteHandler(_databasePath);
@@ -171,33 +171,19 @@ namespace Busqueda.Controllers
                     WHERE 1 = 1";
 
                 if (!string.IsNullOrWhiteSpace(localidad))
+                {query += $" AND l.nombre LIKE '%{localidad}%'";}
+                
+                if (!string.IsNullOrWhiteSpace(codPostal))
                 {
-                    Console.WriteLine("ENTRA EN LOCALIDAD");
-                    query += $" AND l.nombre LIKE '{localidad}'";
-                    Console.WriteLine("Query ahora mismo : "+ query);
-                }
-
-                if (!string.IsNullOrWhiteSpace(codigoPostal))
-                {
-                    Console.WriteLine("ENTRA EN CODIGOPOSTAL");
-                    query += $" AND m.codigo_postal LIKE '{codigoPostal}'";
-                    Console.WriteLine("Query ahora mismo : "+ query);
+                    //codPostal = codPostal.PadLeft(5,'0');
+                    query += $" AND m.codigo_postal LIKE '%{codPostal}%'";
                 }
 
                 if (!string.IsNullOrWhiteSpace(provincia))
-                {
-                    Console.WriteLine("ENTRA EN PROVINCIA");
-                    query += $" AND p.nombre LIKE '{provincia}'";
-                    Console.WriteLine("Query ahora mismo : "+ query);
-                }
+                {query += $" AND p.nombre LIKE '%{provincia}%'";}
 
                 if (!string.IsNullOrWhiteSpace(tipo) && !tipo.Equals("all"))
-                {
-                    Console.WriteLine("ENTRA EN TIPO");
-                    query += $" AND m.tipo LIKE '{tipo}'";
-                    Console.WriteLine("Query ahora mismo : "+ query);
-
-                }
+                {query += $" AND m.tipo LIKE '{tipo}'";}
                         
 
                 // Ejecutar la consulta

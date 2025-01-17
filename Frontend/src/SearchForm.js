@@ -21,6 +21,8 @@ const SearchForm = ({ handleCancel }) => {
     tipo: "all",
   });
 
+  const [searchTrigger, setSearchTrigger] = useState(false);
+
   // Inicialización del mapa con Leaflet
   useEffect(() => {
     const initializedMap = L.map("map").setView([40.416775, -3.703790], 6); // Madrid
@@ -62,17 +64,30 @@ const SearchForm = ({ handleCancel }) => {
       iconAnchor: [16, 22], 
       popupAnchor: [0, -22], 
     });
+    if(searchTrigger){
+      const puntos = [];
 
-    const puntos = [
-      { lat: 40.416775, lng: -3.703790, title: "Punto 1" }, 
-      { lat: 41.38879, lng: 2.15899, title: "Punto 2" },  
-      { lat: 42.1401, lng: -0.4082, title: "Punto 3" }  
-    ];
+      results.monumentos.forEach((monumento) => {
+        const lat = parseFloat(monumento.latitud);
+        const lng = parseFloat(monumento.longitud);
 
-    puntos.forEach((punto) => {
-      const marker = L.marker([punto.lat, punto.lng], { icon: customIcon }).addTo(initializedMap);
-      marker.bindPopup(`<b>${punto.title}</b><br/>Lat: ${punto.lat}<br/>Lng: ${punto.lng}`);
-    });
+        if (!isNaN(lat) && !isNaN(lng)) {
+          puntos.push({
+            lat: lat,
+            lng: lng,
+            title: monumento.nombre
+          });
+        } else {
+          console.error("Latitud o longitud inválida:", monumento);
+        }
+      });
+  
+      puntos.forEach((punto) => {
+        const marker = L.marker([punto.lat, punto.lng], { icon: customIcon }).addTo(initializedMap);
+        marker.bindPopup(`<b>${punto.title}</b><br/>Lat: ${punto.lat}<br/>Lng: ${punto.lng}`);
+      });
+    }
+    
 
     setMap(initializedMap);
 
@@ -82,7 +97,7 @@ const SearchForm = ({ handleCancel }) => {
     return () => {
       initializedMap.remove();
     };
-  }, []);
+  }, [searchTrigger]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -93,6 +108,7 @@ const SearchForm = ({ handleCancel }) => {
   };
 
   const handleSearch = async () => {
+    setSearchTrigger(false);
     const endpoints = {
       getAllDatabase: "http://localhost:5005/api/busqueda/getAllDatabase",
       buscarMonumentos: "http://localhost:5005/api/busqueda/buscarMonumentos",
@@ -101,9 +117,7 @@ const SearchForm = ({ handleCancel }) => {
     try {
       var response = await axios.get(endpoints.getAllDatabase);
       var data = response.data;
-    
-      console.log("DATA TODOS: ", data);
-    
+        
       setResults({
         monumentos: data.monumentos || [],
         localidades: data.localidades || [],
@@ -114,10 +128,8 @@ const SearchForm = ({ handleCancel }) => {
       if (shouldTriggerSearch(filters)) {
         try {
           response = await axios.get(endpoints.buscarMonumentos, { params: filters });
-          data = response.data;
-          
-          console.log("DATA FILTRADA: ", data.monumentos);
-      
+
+          data = response.data;      
           
           setResults((prevResults) => ({
             ...prevResults,
@@ -128,6 +140,7 @@ const SearchForm = ({ handleCancel }) => {
           console.error("Error buscando monumentos:", error);
         }
       }
+      setSearchTrigger(true);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -232,9 +245,12 @@ const SearchForm = ({ handleCancel }) => {
             >
               <option value="all">Todos</option>
               <option value="Yacimiento_arqueologico">Yacimiento arqueologico</option>
-              <option value="historical">Histórico</option>
-              <option value="modern">Moderno</option>
-              <option value="natural">Natural</option>
+              <option value="Iglesia-Ermita">Iglesia</option>
+              <option value="Monasterio-Convento">Monasterio</option>
+              <option value="Castillo-Fortaleza-Torre">Castillo</option>
+              <option value="Edificio_singular">Edificio</option>
+              <option value="Puente">Puente</option>
+              <option value="Otros">Otros</option>
             </select>
           </div>
           <div className="form-actions">
