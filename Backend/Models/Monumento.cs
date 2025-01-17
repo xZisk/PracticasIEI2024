@@ -18,5 +18,6 @@ namespace IEIPracticas.Models
         public string Descripcion { get; set; }
         public Tipo Tipo { get; set; }
         public int IdLocalidad { get; set; }
+        public string Fuente { get; set; }
     }
 }

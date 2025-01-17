@@ -98,7 +98,8 @@ namespace IEIPracticas.Mappers
                 Tipo = MapTipo(cm.CATEGORIA, cm.DENOMINACION),
                 Latitud = latitud,
                 Longitud = longitud,
-                Descripcion = $"Monumento '{cm.DENOMINACION}' situado en '{cm.MUNICIPIO}' de tipo '{MapTipo(cm.CATEGORIA, cm.DENOMINACION)}'."
+                Descripcion = $"Monumento '{cm.DENOMINACION}' situado en '{cm.MUNICIPIO}' de tipo '{MapTipo(cm.CATEGORIA, cm.DENOMINACION)}'.",
+                Fuente = "CSV",
             };
 
             return monumento;

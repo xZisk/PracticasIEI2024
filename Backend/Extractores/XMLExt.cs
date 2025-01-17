@@ -169,6 +169,7 @@ namespace IEIPracticas
                 Latitud = latitud,
                 Longitud = longitud,
                 Descripcion = WebUtility.HtmlDecode(Regex.Replace(xm.Descripcion?.CDataSection.Replace("'","''"),"<.*?>", string.Empty)),
+                Fuente = "XML",
             };
 
             return monumento;

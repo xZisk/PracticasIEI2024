@@ -164,28 +164,33 @@ namespace Busqueda.Controllers
 
                 // Construir la consulta base
                 string query = @"
-                    SELECT m.*
-                    FROM Monumento m
-                    LEFT JOIN Localidad l ON m.idLocalidad = l.idLocalidad
-                    LEFT JOIN Provincia p ON l.idProvincia = p.idProvincia
-                    WHERE 1 = 1";
+                SELECT m.*
+                FROM Monumento m
+                LEFT JOIN Localidad l ON m.idLocalidad = l.idLocalidad
+                LEFT JOIN Provincia p ON l.idProvincia = p.idProvincia
+                WHERE 1 = 1";
 
                 if (!string.IsNullOrWhiteSpace(localidad))
-                {query += $" AND l.nombre LIKE '%{localidad}%'";}
-                
+                {
+                    query += $" AND remove_accents(LOWER(l.nombre)) LIKE remove_accents(LOWER('%{localidad}%'))";
+                }
+
                 if (!string.IsNullOrWhiteSpace(codPostal))
                 {
                     //codPostal = codPostal.PadLeft(5,'0');
-                    query += $" AND m.codigo_postal LIKE '%{codPostal}%'";
+                    query += $" AND remove_accents(LOWER(m.codigo_postal)) LIKE remove_accents(LOWER('%{codPostal}%'))";
                 }
 
                 if (!string.IsNullOrWhiteSpace(provincia))
-                {query += $" AND p.nombre LIKE '%{provincia}%'";}
+                {
+                    query += $" AND remove_accents(LOWER(p.nombre)) LIKE remove_accents(LOWER('%{provincia}%'))";
+                }
 
                 if (!string.IsNullOrWhiteSpace(tipo) && !tipo.Equals("all"))
-                {query += $" AND m.tipo LIKE '{tipo}'";}
-                        
-
+                {
+                    query += $" AND remove_accents(LOWER(m.tipo)) LIKE remove_accents(LOWER('{tipo}'))";
+                }
+                
                 // Ejecutar la consulta
                 var monumentosData = dbHandler.GetData<Monumento>(query);
                 var localidadesData = dbHandler.GetData<Localidad>(query);

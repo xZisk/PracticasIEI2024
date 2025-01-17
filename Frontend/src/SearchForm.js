@@ -14,6 +14,11 @@ const SearchForm = ({ handleCancel }) => {
     localidades: [],
     provincias: [],
   });
+
+  const [resultsTotales, setResultsTotales] = useState({
+    monumentosCompletos: [],
+  });
+
   const [filters, setFilters] = useState({
     localidad: "",
     codPostal: "",
@@ -22,9 +27,12 @@ const SearchForm = ({ handleCancel }) => {
   });
 
   const [searchTrigger, setSearchTrigger] = useState(false);
+  const [searchTriggerBusc, setSearchTriggerBusc] = useState(false);
+
 
   // Inicialización del mapa con Leaflet
   useEffect(() => {
+    onOpen();
     const initializedMap = L.map("map").setView([40.416775, -3.703790], 6); // Madrid
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -58,35 +66,60 @@ const SearchForm = ({ handleCancel }) => {
     });
 
     initializedMap.addControl(drawControl);
+    
     const customIcon = L.icon({
-      iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png", // Puedes cambiar esta URL a una imagen personalizada
+      iconUrl: "/marker-icon-blue.png",
       iconSize: [22, 32], 
       iconAnchor: [16, 22], 
       popupAnchor: [0, -22], 
     });
-    if(searchTrigger){
-      const puntos = [];
 
-      results.monumentos.forEach((monumento) => {
-        const lat = parseFloat(monumento.latitud);
-        const lng = parseFloat(monumento.longitud);
+    const customIcon2 = L.icon({
+      iconUrl: '/marker-icon-orange.png',
+      iconSize: [22, 32], 
+      iconAnchor: [16, 22], 
+      popupAnchor: [0, -22], 
+    });
 
-        if (!isNaN(lat) && !isNaN(lng)) {
-          puntos.push({
-            lat: lat,
-            lng: lng,
-            title: monumento.nombre
-          });
-        } else {
-          console.error("Latitud o longitud inválida:", monumento);
-        }
-      });
-  
-      puntos.forEach((punto) => {
-        const marker = L.marker([punto.lat, punto.lng], { icon: customIcon }).addTo(initializedMap);
-        marker.bindPopup(`<b>${punto.title}</b><br/>Lat: ${punto.lat}<br/>Lng: ${punto.lng}`);
-      });
+    const puntos = [];
+
+    resultsTotales.monumentosCompletos.forEach((monumento) => {
+      const lat = parseFloat(monumento.latitud);
+      const lng = parseFloat(monumento.longitud);
+      
+      if (!isNaN(lat) && !isNaN(lng)) {
+        puntos.push({
+          lat: lat,
+          lng: lng,
+          title: monumento.nombre,
+          tipo: 0
+        }); 
+      } else {
+        console.error("Latitud o longitud inválida:", monumento);
+      }
+    });
+    
+
+    if(searchTriggerBusc){
+      console.log("ENTRA en search");
+      results.monumentos.forEach((monumentoBuscado) => {
+        console.log(monumentoBuscado.nombre);
+        var puntoExistente = puntos.find((punto) => punto.title === monumentoBuscado.nombre);
+        puntoExistente.tipo = 1;
+      })
     }
+  
+    puntos.forEach((punto) => {
+      var marker;
+      if (punto.tipo === 0){
+        marker = L.marker([punto.lat, punto.lng], {icon : customIcon}).addTo(initializedMap);
+      } else {
+        marker = L.marker([punto.lat, punto.lng], {icon : customIcon2}).addTo(initializedMap);
+      }
+
+      marker.bindPopup(`<b>${punto.title}</b><br/>Lat: ${punto.lat}<br/>Lng: ${punto.lng}`);
+    });
+    
     
 
     setMap(initializedMap);
@@ -97,7 +130,7 @@ const SearchForm = ({ handleCancel }) => {
     return () => {
       initializedMap.remove();
     };
-  }, [searchTrigger]);
+  }, [searchTrigger, searchTriggerBusc]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -107,8 +140,26 @@ const SearchForm = ({ handleCancel }) => {
     }));
   };
 
+  const onOpen = async () => {
+    try {
+      const endpoints = {
+        getAllDatabase: "http://localhost:5005/api/busqueda/getAllDatabase",
+      };
+      var response = await axios.get(endpoints.getAllDatabase);
+      var data = response.data;
+
+
+      setResultsTotales({
+        monumentosCompletos: data.monumentos || [],
+      });
+
+      setSearchTrigger(true);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
   const handleSearch = async () => {
-    setSearchTrigger(false);
     const endpoints = {
       getAllDatabase: "http://localhost:5005/api/busqueda/getAllDatabase",
       buscarMonumentos: "http://localhost:5005/api/busqueda/buscarMonumentos",
@@ -117,7 +168,8 @@ const SearchForm = ({ handleCancel }) => {
     try {
       var response = await axios.get(endpoints.getAllDatabase);
       var data = response.data;
-        
+
+      setSearchTriggerBusc(false);
       setResults({
         monumentos: data.monumentos || [],
         localidades: data.localidades || [],
@@ -128,19 +180,17 @@ const SearchForm = ({ handleCancel }) => {
       if (shouldTriggerSearch(filters)) {
         try {
           response = await axios.get(endpoints.buscarMonumentos, { params: filters });
+          data = response.data;  
 
-          data = response.data;      
-          
+          setSearchTriggerBusc(true);
           setResults((prevResults) => ({
             ...prevResults,
             monumentos: data.monumentos || [],
           }));
-      
         } catch (error) {
           console.error("Error buscando monumentos:", error);
         }
       }
-      setSearchTrigger(true);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
