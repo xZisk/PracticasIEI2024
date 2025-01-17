@@ -492,13 +492,11 @@ namespace IEIPracticas.SQLite
                             // Buscar la propiedad que coincida, usando la capitalización correcta
                             var property = typeof(T).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
 
-                            Console.WriteLine($"Propiedad: {columnName}");
                             if ((property != null && reader[columnName] != DBNull.Value)  || columnName == "codigo_postal")
                             {
                                 try
                                 {
                                     var value = reader.GetValue(i);
-                                    Console.WriteLine($"Valor original: {value}");
 
                                     if (value != null)
                                     {
@@ -549,8 +547,10 @@ namespace IEIPracticas.SQLite
 
 
         //Cambiar nombre
-        public string GetStringData(string query, Dictionary<string, object>? parameters = null)
+        public List<T> GetData<T>(string query, Dictionary<string, object>? parameters = null)
         {
+            var resultList = new List<T>();
+
             try
             {
                 using (var command = new SqliteCommand(query, connection))
@@ -566,18 +566,57 @@ namespace IEIPracticas.SQLite
 
                     using (var reader = command.ExecuteReader())
                     {
-                        var result = new StringBuilder();
-
                         while (reader.Read())
                         {
+                            var result = Activator.CreateInstance<T>();
+
+                            // Recorrer todas las columnas en el lector de datos
                             for (int i = 0; i < reader.FieldCount; i++)
                             {
-                                result.Append($"{reader.GetName(i)}: {reader.GetValue(i)}, ");
-                            }
-                            result.AppendLine(); // Salto de línea después de cada registro
-                        }
+                                var columnName = reader.GetName(i);
+                                var propertyName = char.ToUpper(columnName[0]) + columnName.Substring(1);
 
-                        return result.ToString();
+                                // Buscar la propiedad que coincida, usando la capitalización correcta
+                                var property = typeof(T).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+
+                                if ((property != null && reader[columnName] != DBNull.Value) || columnName == "codigo_postal")
+                                {
+                                    try
+                                    {
+                                        var value = reader.GetValue(i);
+
+                                        if (value != null)
+                                        {
+                                            if (propertyName.Equals("Codigo_postal"))
+                                            {
+                                                if (result != null)
+                                                {
+                                                    PropertyInfo propertyForCodigoPostal = result.GetType().GetProperty("CodigoPostal");
+                                                    if (propertyForCodigoPostal != null)
+                                                    {
+                                                        propertyForCodigoPostal.SetValue(result, Convert.ToInt32(value));
+                                                    }
+                                                }
+                                            }
+                                            else if (propertyName.Equals("Tipo"))
+                                            {
+                                                property.SetValue(result, GetEnumFromDescription(value.ToString()));
+                                            }
+                                            else
+                                            {
+                                                // Caso general
+                                                property.SetValue(result, Convert.ChangeType(value, property.PropertyType));
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Error setting value for {propertyName}: {ex.Message}");
+                                    }
+                                }
+                            }
+                            resultList.Add(result);
+                        }
                     }
                 }
             }
@@ -585,7 +624,10 @@ namespace IEIPracticas.SQLite
             {
                 throw new Exception($"Error al ejecutar la consulta: {ex.Message}", ex);
             }
+
+            return resultList;
         }
+
 
         public List<string> RepairedRecords { get; private set; } = new List<string>();
         public List<string> RejectedRecords { get; private set; } = new List<string>();

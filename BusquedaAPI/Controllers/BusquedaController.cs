@@ -78,6 +78,7 @@ namespace Busqueda.Controllers
         /// Filtra los monumentos dependiendo de los parametros introducidos.
         /// </summary>
         /// <returns>Objeto con listas de Monumentos</returns>
+        /*
         [HttpGet("buscarMonumentos")]
         public IActionResult BuscarMonumentos(
             [FromQuery] string? localidad, 
@@ -126,13 +127,92 @@ namespace Busqueda.Controllers
                 }
 
                 // Ejecutar la consulta
-                var resultados = dbHandler.GetStringData(query, parameters);
+                var monumentosData = dbHandler.GetData<Monumento>(query, parameters);
+                var localidadesData = dbHandler.GetData<Localidad>(query, parameters);
+                var provinciasData = dbHandler.GetData<Provincia>(query, parameters);
 
                 dbHandler.CloseConnection();
 
-                // Construir la respuesta en texto plano
-                string response = "Resultados de la búsqueda:\n";
-                response += resultados;
+                var response = new
+                {
+                    monumentos = monumentosData,
+                    localidades = localidadesData,
+                    provincias = provinciasData
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al buscar monumentos: {ex.Message}");
+            }
+        }
+        */
+        [HttpGet("buscarMonumentos")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult BuscarMonumentos(
+            [FromQuery] string? localidad, 
+            [FromQuery] string? codigoPostal, 
+            [FromQuery] string? provincia, 
+            [FromQuery] string? tipo)
+        {
+            try
+            {
+                SQLiteHandler dbHandler = new SQLiteHandler(_databasePath);
+                dbHandler.OpenConnection();
+
+                // Construir la consulta base
+                string query = @"
+                    SELECT m.*
+                    FROM Monumento m
+                    LEFT JOIN Localidad l ON m.idLocalidad = l.idLocalidad
+                    LEFT JOIN Provincia p ON l.idProvincia = p.idProvincia
+                    WHERE 1 = 1";
+
+                if (!string.IsNullOrWhiteSpace(localidad))
+                {
+                    Console.WriteLine("ENTRA EN LOCALIDAD");
+                    query += $" AND l.nombre LIKE '{localidad}'";
+                    Console.WriteLine("Query ahora mismo : "+ query);
+                }
+
+                if (!string.IsNullOrWhiteSpace(codigoPostal))
+                {
+                    Console.WriteLine("ENTRA EN CODIGOPOSTAL");
+                    query += $" AND m.codigo_postal LIKE '{codigoPostal}'";
+                    Console.WriteLine("Query ahora mismo : "+ query);
+                }
+
+                if (!string.IsNullOrWhiteSpace(provincia))
+                {
+                    Console.WriteLine("ENTRA EN PROVINCIA");
+                    query += $" AND p.nombre LIKE '{provincia}'";
+                    Console.WriteLine("Query ahora mismo : "+ query);
+                }
+
+                if (!string.IsNullOrWhiteSpace(tipo) && !tipo.Equals("all"))
+                {
+                    Console.WriteLine("ENTRA EN TIPO");
+                    query += $" AND m.tipo LIKE '{tipo}'";
+                    Console.WriteLine("Query ahora mismo : "+ query);
+
+                }
+                        
+
+                // Ejecutar la consulta
+                var monumentosData = dbHandler.GetData<Monumento>(query);
+                var localidadesData = dbHandler.GetData<Localidad>(query);
+                var provinciasData = dbHandler.GetData<Provincia>(query);
+
+                dbHandler.CloseConnection();
+
+                var response = new
+                {
+                    monumentos = monumentosData,
+                    localidades = localidadesData,
+                    provincias = provinciasData
+                };
 
                 return Ok(response);
             }

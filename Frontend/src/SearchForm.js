@@ -95,27 +95,51 @@ const SearchForm = ({ handleCancel }) => {
   const handleSearch = async () => {
     const endpoints = {
       getAllDatabase: "http://localhost:5005/api/busqueda/getAllDatabase",
+      buscarMonumentos: "http://localhost:5005/api/busqueda/buscarMonumentos",
     };
 
     try {
-      const response = await axios.get(endpoints.getAllDatabase);
-      const data = response.data;
-
-      console.log(data);
-
+      var response = await axios.get(endpoints.getAllDatabase);
+      var data = response.data;
+    
+      console.log("DATA TODOS: ", data);
+    
       setResults({
         monumentos: data.monumentos || [],
         localidades: data.localidades || [],
         provincias: data.provincias || [],
       });
+    
+      // Verifica si algún filtro tiene un valor
+      if (shouldTriggerSearch(filters)) {
+        try {
+          response = await axios.get(endpoints.buscarMonumentos, { params: filters });
+          data = response.data;
+          
+          console.log("DATA FILTRADA: ", data.monumentos);
+      
+          
+          setResults((prevResults) => ({
+            ...prevResults,
+            monumentos: data.monumentos || [],
+          }));
+      
+        } catch (error) {
+          console.error("Error buscando monumentos:", error);
+        }
+      }
     } catch (error) {
-      console.error("Error durante la búsqueda:", error);
-      setResults({
-        monumentos: [],
-        localidades: [],
-        provincias: [],
-      });
+      console.error("Error fetching data:", error);
     }
+  };
+
+  const shouldTriggerSearch = (filters) => {
+    return (
+      filters.localidad.trim() !== "" || // Verifica si localidad no está vacía
+      filters.codPostal.trim() !== "" || // Verifica si codPostal no está vacío
+      filters.provincia.trim() !== "" || // Verifica si provincia no está vacía
+      filters.tipo !== "all"             // Verifica si tipo no es el valor por defecto
+    );
   };
 
   const getLocalidadNombre = (idLocalidad) => {
@@ -207,6 +231,7 @@ const SearchForm = ({ handleCancel }) => {
               onChange={handleInputChange}
             >
               <option value="all">Todos</option>
+              <option value="Yacimiento_arqueologico">Yacimiento arqueologico</option>
               <option value="historical">Histórico</option>
               <option value="modern">Moderno</option>
               <option value="natural">Natural</option>
