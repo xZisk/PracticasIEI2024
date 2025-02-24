@@ -21,7 +21,7 @@ namespace IEIPracticas.APIs_Scrapper
         public HereGeocodingService()
         {
             DotEnv.Load();
-            ApiKey = Environment.GetEnvironmentVariable("HERE_API_KEY"); // Add this line
+            ApiKey = Environment.GetEnvironmentVariable("HERE_API_KEY");
             _httpClient = new HttpClient();
         }
         /*
