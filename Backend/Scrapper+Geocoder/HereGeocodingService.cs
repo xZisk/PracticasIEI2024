@@ -5,12 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.IO;
+using dotenv.net;
 
 namespace IEIPracticas.APIs_Scrapper
 {
     public class HereGeocodingService
     {
-        private const string ApiKey = "VQRKZ8JdzsXSteMI-6Ijefe3MRd4zbyPIH63BN3P7M8";
+        private readonly string ApiKey;
         private const string GeocodeUrl = "https://geocode.search.hereapi.com/v1/geocode";
         private const string ReverseGeocodeUrl = "https://revgeocode.search.hereapi.com/v1/revgeocode";
 
@@ -18,6 +20,8 @@ namespace IEIPracticas.APIs_Scrapper
 
         public HereGeocodingService()
         {
+            DotEnv.Load();
+            ApiKey = Environment.GetEnvironmentVariable("HERE_API_KEY"); // Add this line
             _httpClient = new HttpClient();
         }
         /*
