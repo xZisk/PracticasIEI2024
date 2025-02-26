@@ -20,8 +20,17 @@ namespace IEIPracticas.APIs_Scrapper
 
         public HereGeocodingService()
         {
-            DotEnv.Load();
+            var options = new DotEnvOptions(envFilePaths: new[] { "../.env" });
+            DotEnv.Load(options);
             ApiKey = Environment.GetEnvironmentVariable("HERE_API_KEY");
+            if (string.IsNullOrEmpty(ApiKey))
+            {
+                Console.WriteLine("HERE_API_KEY is not set or could not be loaded.");
+            }
+            else
+            {
+                Console.WriteLine($"HERE_API_KEY loaded successfully: {ApiKey}");
+            }
             _httpClient = new HttpClient();
         }
         /*
